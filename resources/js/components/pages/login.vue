@@ -17,7 +17,15 @@
                             <label for="exampleInputPassword1" class="text-default-800 text-sm font-medium inline-block mb-2">Password</label>
                             <input type="password" class="form-input" id="exampleInputPassword1" placeholder="Password">
                         </div>
-                        
+                        <div class="">
+                            <div class="d-flex justify-content-between gap-2" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                                <div class="form-check style-check d-flex align-items-center">
+                                    <!-- <input class="form-check-input border border-neutral-300" type="checkbox" value="" id="remeber">
+                                    <label class="form-check-label" for="remeber">Remember me </label> -->
+                                </div>
+                                <router-link to="/admins/forgotPassword" class="text-primary-600 fw-medium">Forgot Password?</router-link>
+                            </div>
+                        </div>
                         <button type="submit" class="btn bg-primary text-white">Submit</button>
                     </form>
                 </div>
