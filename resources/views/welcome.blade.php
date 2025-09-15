@@ -15,6 +15,43 @@
         <!-- App css  (Mandatory in All Pages) -->
         <link href="{{ asset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css">
 
+        <link
+            rel="stylesheet"
+            data-purpose="Layout StyleSheet"
+            title="Web Awesome"
+            href="/css/app-wa-462758aa1e172f82d39e1ea35e919e0a.css?vsn=d"
+        >
+
+        <link
+            rel="stylesheet"
+            href="https://site-assets.fontawesome.com/releases/v6.6.0/css/all.css"
+        >
+
+        <link
+            rel="stylesheet"
+            href="https://site-assets.fontawesome.com/releases/v6.6.0/css/sharp-duotone-solid.css"
+        >
+
+        <link
+            rel="stylesheet"
+            href="https://site-assets.fontawesome.com/releases/v6.6.0/css/sharp-thin.css"
+        >
+
+        <link
+            rel="stylesheet"
+            href="https://site-assets.fontawesome.com/releases/v6.6.0/css/sharp-solid.css"
+        >
+
+        <link
+            rel="stylesheet"
+            href="https://site-assets.fontawesome.com/releases/v6.6.0/css/sharp-regular.css"
+        >
+
+        <link
+            rel="stylesheet"
+            href="https://site-assets.fontawesome.com/releases/v6.6.0/css/sharp-light.css"
+        >
+
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body>

@@ -31,52 +31,14 @@
                 </div>
 
                 <div class="flex items-center gap-5">
-                    <!-- Language Dropdown Button -->
-                    <div class="hs-dropdown relative inline-flex [--placement:bottom-right]">
-                        <button type="button"
-                            class="hs-dropdown-toggle inline-flex items-center p-2 rounded-full bg-white border border-default-200 hover:bg-primary/15 hover:text-primary transition-all">
-                            <i class="i-lucide-globe text-2xl"></i>
-                        </button>
-
-                        <div
-                            class="hs-dropdown-menu duration mt-2 min-w-48 rounded-lg border border-default-200 bg-white p-2 opacity-0 shadow-md transition-[opacity,margin] hs-dropdown-open:opacity-100 hidden">
-                            <a href="javascript:void(0);"
-                                class="flex items-center gap-2.5 py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100">
-                                <img src="/assets/images/flags/germany.jpg" alt="user-image" class="h-4">
-                                <span class="align-middle">German</span>
-                            </a>
-
-                            <!-- item-->
-                            <a href="javascript:void(0);"
-                                class="flex items-center gap-2.5 py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100">
-                                <img src="/assets/images/flags/italy.jpg" alt="user-image" class="h-4">
-                                <span class="align-middle">Italian</span>
-                            </a>
-
-                            <!-- item-->
-                            <a href="javascript:void(0);"
-                                class="flex items-center gap-2.5 py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100">
-                                <img src="/assets/images/flags/spain.jpg" alt="user-image" class="h-4">
-                                <span class="align-middle">Spanish</span>
-                            </a>
-
-                            <!-- item-->
-                            <a href="javascript:void(0);"
-                                class="flex items-center gap-2.5 py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100">
-                                <img src="/assets/images/flags/russia.jpg" alt="user-image" class="h-4">
-                                <span class="align-middle">Russian</span>
-                            </a>
-                        </div>
-                    </div>
 
                     <!-- Notification Dropdown Button -->
-                    <div class="hs-dropdown relative inline-flex [--placement:bottom-right]">
+                    <!-- <div class="hs-dropdown relative inline-flex [--placement:bottom-right]">
                         <button type="button"
                             class="hs-dropdown-toggle inline-flex items-center p-2 rounded-full bg-white border border-default-200 hover:bg-primary/15 hover:text-primary transition-all">
                             <i class="i-lucide-bell text-2xl"></i>
                         </button>
 
-                        <!-- Dropdown menu -->
                         <div
                             class="hs-dropdown-menu duration mt-2 w-full max-w-sm rounded-lg border border-default-200 bg-white opacity-0 shadow-md transition-[opacity,margin] hs-dropdown-open:opacity-100 hidden">
                             <div
@@ -168,10 +130,10 @@
                                 </div>
                             </a>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- Fullscreen Toggle Button -->
-                    <div class="md:flex hidden">
+                    <!-- <div class="md:flex hidden">
                         <button data-toggle="fullscreen" type="button"
                             class="p-2 rounded-full bg-white border border-default-200 hover:bg-primary/15 hover:text-primary transition-all">
                             <span class="sr-only">Fullscreen Mode</span>
@@ -180,7 +142,7 @@
                                 <i class="i-lucide-minimize text-2xl hidden group-[-fullscreen]:flex"></i>
                             </span>
                         </button>
-                    </div>
+                    </div> -->
 
                     <!-- Profile Dropdown Button -->
                     <div class="relative">

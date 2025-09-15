@@ -16,346 +16,66 @@
                 <ul class="admin-menu hs-accordion-group flex w-full flex-col gap-1">
                     <li class="px-3 py-2 text-xs uppercase font-medium text-default-500">Menu</li>
 
-                    <li class="menu-item hs-accordion">
-                        <a href="javascript:void(0)"
-                            class="hs-accordion-toggle group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5 hs-accordion-active:bg-primary/5 hs-accordion-active:text-primary">
-                            <i class="i-lucide-layout-grid size-5"></i>
-                            <span class="menu-text"> Dashboards </span>
-                            <span class="menu-arrow"></span>
-                        </a>
-
-                        <div class="hs-accordion-content hidden w-full overflow-hidden transition-[height] duration-300">
-                            <ul class="mt-1 space-y-1">
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="index.html">
-                                        <i class="menu-dot"></i>
-                                        Dashboard
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    <li class="px-3 py-2 text-xs uppercase font-medium text-default-500">Apps</li>
 
                     <li class="menu-item">
-                        <a class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                            href="app-calendar.html">
-                            <i class="i-lucide-calendar size-5"></i>
-                            Calendar
-                        </a>
+                        <RouterLink class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5" exact-active-class="active"
+                            to="/">
+                            <i class="fa-regular fa-home size-5"></i>
+                            Dashbord
+                        </RouterLink>
                     </li>
 
                     <li class="menu-item">
-                        <a class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                            href="app-gallery.html">
-                            <i class="i-lucide-image size-5"></i>
-                            Images Gallery
-                        </a>
+                        <RouterLink class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5" exact-active-class="active"
+                            to="/customer">
+                            <i class="fa-regular fa-user-tie size-5"></i>
+                            Customers
+                        </RouterLink>
                     </li>
 
                     <li class="menu-item">
-                        <a class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                            href="app-plans.html">
-                            <i class="i-lucide-circle-dollar-sign size-5"></i>
-                            Pricing Plans
-                        </a>
+                        <RouterLink class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5" exact-active-class="active"
+                            to="/account">
+                            <i class="fa-light fa-file-invoice size-5"></i>
+                            Accounts
+                        </RouterLink>
                     </li>
 
                     <li class="menu-item">
-                        <a class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                            href="app-contacts.html">
-                            <i class="i-lucide-user-circle size-5"></i>
-                            Contacts
-                        </a>
+                        <RouterLink class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5" exact-active-class="active"
+                            to="/exchange">
+                            <i class="fa-regular fa-arrow-right-arrow-left size-5"></i>
+                            Exchanges
+                        </RouterLink>
                     </li>
 
-                    <li class="px-3 py-2 text-xs uppercase font-medium text-default-500">Pages</li>
+                    <li class="px-3 py-2 text-xs uppercase font-medium text-default-500">Currency settings</li>
 
                     <li class="menu-item">
-                        <a href="starter-page.html"
-                            class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5">
+                        <RouterLink to="/currency"
+                            class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5" exact-active-class="active">
                             <i class="i-lucide-clipboard size-5"></i>
-                            <span class="menu-text"> Starter Pages </span>
-                        </a>
+                            <span class="menu-text"> Currency </span>
+                        </RouterLink>
+                    </li>
+                    <li class="menu-item">
+                        <RouterLink to="/rate"
+                            class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5" exact-active-class="active">
+                            <i class="i-lucide-clipboard size-5"></i>
+                            <span class="menu-text"> Exchanges Rate </span>
+                        </RouterLink>
                     </li>
 
-                    <li class="px-3 py-2 text-xs uppercase font-medium text-default-500">Elements</li>
-
-                    <li class="menu-item hs-accordion">
-                        <a href="javascript:void(0)"
-                            class="hs-accordion-toggle group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5 hs-accordion-active:bg-primary/5 hs-accordion-active:text-primary">
-                            <i class="i-lucide-layout size-5"></i>
-                            <span class="menu-text"> Components </span>
-                            <span class="menu-arrow"></span>
-                        </a>
-
-                        <div class="hs-accordion-content hidden w-full overflow-hidden transition-[height] duration-300">
-                            <ul class="mt-1 space-y-1">
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-accordion.html">
-                                        <i class="menu-dot"></i>
-                                        Accordion
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-alerts.html">
-                                        <i class="menu-dot"></i>
-                                        Alert
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-avatars.html">
-                                        <i class="menu-dot"></i>
-                                        Avatars
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-buttons.html">
-                                        <i class="menu-dot"></i>
-                                        Buttons
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-badges.html">
-                                        <i class="menu-dot"></i>
-                                        Badges
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-breadcrumbs.html">
-                                        <i class="menu-dot"></i>
-                                        Breadcrumbs
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-cards.html">
-                                        <i class="menu-dot"></i>
-                                        Cards
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-collapse.html">
-                                        <i class="menu-dot"></i>
-                                        Collapse
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-dropdowns.html">
-                                        <i class="menu-dot"></i>
-                                        Dropdowns
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-progress.html">
-                                        <i class="menu-dot"></i>
-                                        Progress
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-spinners.html">
-                                        <i class="menu-dot"></i>
-                                        Spinners
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-skeleton.html">
-                                        <i class="menu-dot"></i>
-                                        Skeleton
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-ratio.html">
-                                        <i class="menu-dot"></i>
-                                        Ratio
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-modals.html">
-                                        <i class="menu-dot"></i>
-                                        Modals
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-offcanvas.html">
-                                        <i class="menu-dot"></i>
-                                        Offcanvas
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-popovers.html">
-                                        <i class="menu-dot"></i>
-                                        Popovers
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-tooltips.html">
-                                        <i class="menu-dot"></i>
-                                        Tooltips
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
-                                        href="ui-typography.html">
-                                        <i class="menu-dot"></i>
-                                        Typography
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    <li class="menu-item hs-accordion">
-                        <a href="javascript:void(0)"
-                            class="hs-accordion-toggle group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5 hs-accordion-active:bg-primary/5 hs-accordion-active:text-primary">
-                            <i class="i-lucide-check-square size-5"></i>
-                            <span class="menu-text"> Forms </span>
-                            <span class="menu-arrow"></span>
-                        </a>
-
-                        <div class="hs-accordion-content hidden w-full overflow-hidden transition-[height] duration-300">
-                            <ul class="mt-1 space-y-1">
-                                <li class="menu-item">
-                                    <a href="forms-inputs.html"
-                                        class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5">
-                                        <i class="menu-dot"></i>
-                                        <span class="menu-text">Inputs</span>
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a href="forms-check-radio.html"
-                                        class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5">
-                                        <i class="menu-dot"></i>
-                                        <span class="menu-text">Checkbox & Radio</span>
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a href="forms-masks.html"
-                                        class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5">
-                                        <i class="menu-dot"></i>
-                                        <span class="menu-text">Input Masks</span>
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a href="forms-file-upload.html"
-                                        class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5">
-                                        <i class="menu-dot"></i>
-                                        <span class="menu-text">File Upload</span>
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a href="forms-editor.html"
-                                        class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5">
-                                        <i class="menu-dot"></i>
-                                        <span class="menu-text">Editor</span>
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a href="forms-validation.html"
-                                        class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5">
-                                        <i class="menu-dot"></i>
-                                        <span class="menu-text">Validation</span>
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a href="forms-layout.html"
-                                        class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5">
-                                        <i class="menu-dot"></i>
-                                        <span class="menu-text">Form Layout</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
+                    <li class="px-3 py-2 text-xs uppercase font-medium text-default-500">Admin Setting</li>
 
                     <li class="menu-item">
-                        <a href="maps-vector.html"
-                            class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5">
-                            <i class="i-lucide-map-pin size-5"></i>
-                            <span class="menu-text"> Maps </span>
-                        </a>
-                    </li>
-
-                    <li class="menu-item">
-                        <a href="tables-basic.html"
-                            class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5 hs-accordion-active:bg-primary/5 hs-accordion-active:text-primary">
-                            <i class="i-lucide-table size-5"></i>
-                            <span class="menu-text"> Tables </span>
-                        </a>
-                    </li>
-
-                    <li class="menu-item">
-                        <a href="charts-apex.html"
-                            class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5 hs-accordion-active:bg-primary/5 hs-accordion-active:text-primary">
-                            <i class="i-tabler-chart-donut-2 size-5"></i>
-                            <span class="menu-text"> Chart </span>
-                        </a>
-                    </li>
-
-                    <li class="menu-item">
-                        <a href="icons.html"
-                            class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5">
+                        <RouterLink to="/user"
+                            class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5" exact-active-class="active">
                             <i class="i-lucide-palette size-5"></i>
-                            <span class="menu-text"> Icons </span>
-                        </a>
+                            <span class="menu-text"> Users </span>
+                        </RouterLink>
                     </li>
 
-                    <li class="menu-item hs-accordion">
-                        <a href="javascript:void(0)"
-                            class="hs-accordion-toggle group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5 hs-accordion-active:bg-primary/5 hs-accordion-active:text-primary">
-                            <i class="i-lucide-list size-5"></i>
-                            <span class="menu-text"> Level </span>
-                            <span class="menu-arrow"></span>
-                        </a>
-
-                        <div id="sidenavLevel"
-                            class="hs-accordion-content hidden w-full overflow-hidden transition-[height] duration-300">
-                            <ul class="mt-1 space-y-1">
-                                <li class="menu-item">
-                                    <a href="javascript: void(0)"
-                                        class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5">
-                                        <i class="menu-dot"></i>
-                                        <span class="menu-text">Item 1</span>
-                                    </a>
-                                </li>
-                                <li class="menu-item">
-                                    <a href="javascript: void(0)"
-                                        class="flex items-center gap-x-3.5 rounded-md px-3 py-1.5 text-sm font-medium text-default-600 transition-all hover:bg-primary/5">
-                                        <i class="menu-dot"></i>
-                                        <span class="menu-text">Item 2</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    <li class="menu-item">
-                        <a href="javascript:void(0)"
-                            class="hs-accordion-toggle group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5 hs-accordion-active:bg-primary/5 hs-accordion-active:text-primary">
-                            <i class="i-lucide-star size-5"></i>
-                            <span class="menu-text"> Badge Items </span>
-                            <span
-                                class="ms-auto inline-flex items-center gap-x-1.5 py-0.5 px-2 rounded-full font-bold text-xs bg-red-500 text-white">Hot</span>
-                        </a>
-                    </li>
                 </ul>
             </div>
 
@@ -364,8 +84,12 @@
     <!-- End Sidebar -->
 </template>
 <script setup>
+import { RouterLink } from 'vue-router';
+
 
 </script>
 <style scoped>
-    
+    .size-5{
+        font-size: 20px;
+    }
 </style>
