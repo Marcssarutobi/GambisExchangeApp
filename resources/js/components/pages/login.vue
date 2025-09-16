@@ -25,7 +25,7 @@
                                 </div>
                                 <router-link to="/admins/forgotPassword" class="text-primary-600 fw-medium">Forgot Password?</router-link>
                             </div>
-                        </div>
+                        </div> 
                         <button type="submit" class="btn bg-primary text-white">Submit</button>
                     </form>
                 </div>
