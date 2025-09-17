@@ -15,6 +15,8 @@
         <!-- App css  (Mandatory in All Pages) -->
         <link href="{{ asset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css">
 
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
         <link
             rel="stylesheet"
             data-purpose="Layout StyleSheet"
