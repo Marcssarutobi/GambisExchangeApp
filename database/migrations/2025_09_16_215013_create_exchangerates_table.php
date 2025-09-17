@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('exchangerates', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('from_currency_id')->constrained()->onDelete('cascade');
-            $table->foreignId('to_currency_id')->constrained()->onDelete('cascade');
-            $table->decimal('rate', 15, 2);
+            $table->foreignId('from_currency_id')->constrained('currencies')->onDelete('cascade');
+            $table->foreignId('to_currency_id')->constrained('currencies')->onDelete('cascade');
+            $table->decimal('rate', 15, 6); // évite string pour les calculs
             $table->timestamps();
         });
     }
