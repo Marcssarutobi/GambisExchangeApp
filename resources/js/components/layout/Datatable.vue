@@ -162,5 +162,20 @@
 
 @import 'datatables.net-bs5/css/dataTables.bootstrap5.min.css';
 /* Pour que la pagination et l'info soient sur la même ligne et visibles */
-
+    .row{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    td{
+        height: 50px !important;
+    }
+    td, th {
+        text-align: left !important; /* ou center */
+    }
+    .dt-paging nav .pagination{
+        display: flex !important;
+        align-items: center;
+        gap: 30px;
+    }
 </style>

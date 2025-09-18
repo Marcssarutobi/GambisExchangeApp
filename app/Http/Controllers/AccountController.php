@@ -8,7 +8,7 @@ use App\Models\Account;
 class AccountController extends Controller
 {
     public function index(){
-        $data = Account::orderBy('id','desc')->get();
+        $data = Account::with(['client', 'currency'])->orderBy('id','desc')->get();
         return response()->json([
             'status' => 'success',
             'data' => $data
@@ -17,11 +17,15 @@ class AccountController extends Controller
 
     public function store(Request $request){
         $validate = $request->validate([
-            'code' => 'required|string|max:255|unique:accounts',
             'client_id' => 'required|integer|exists:clients,id',
             'currency_id' => 'required|integer|exists:currencies,id',
             'balance' => 'required|numeric|min:0',
         ]);
+
+        // Génération auto du code unique avec date + heure
+        $generatedCode = 'GMB-' . now()->format('Ymd-His');
+
+        $validate['code'] = $generatedCode;
 
         $account = Account::create($validate);
 

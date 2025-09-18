@@ -36,40 +36,106 @@
                 <h2 class="text-lg font-semibold">Add a customer</h2>
 
 
-                <form class="mt-3 space-y-4">
+                <form class="mt-3 space-y-4" @submit.prevent="AddCustomer">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Nom</label>
-                            <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" placeholder="Entrez votre nom">
+                            <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.nom}" placeholder="Entrez votre nom" v-model="data.nom">
+                            <span v-if="isEmpty.nom" class="text-danger">{{ msgInput.nom }}</span>
                         </div>
     
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Prénom</label>
-                            <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" placeholder="Entrez votre prénom">
+                            <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.prenom}" placeholder="Entrez votre prénom" v-model="data.prenom">
+                            <span v-if="isEmpty.prenom" class="text-danger">{{ msgInput.prenom }}</span>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Email</label>
-                            <input type="email" class="mt-1 block w-full border border-gray-300 rounded-md p-2" placeholder="Entrez votre email">
+                            <input type="email" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.email}" placeholder="Entrez votre email" v-model="data.email">
+                            <span v-if="isEmpty.email" class="text-danger">{{ msgInput.email }}</span>
                         </div>
     
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Téléphone</label>
-                            <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" placeholder="Entrez votre téléphone">
+                            <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.phone}" placeholder="Entrez votre téléphone" v-model="data.phone">
+                            <span v-if="isEmpty.phone" class="text-danger">{{ msgInput.phone }}</span>
                         </div>
                     </div>
                     <div class="">
                         <label class="block text-sm font-medium text-gray-700">Numéro pièce d'identité</label>
-                        <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" placeholder="Entrez votre numéro pièce">
+                        <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.npiece}" placeholder="Entrez votre numéro pièce" v-model="data.npiece">
+                        <span v-if="isEmpty.npiece" class="text-danger">{{ msgInput.npiece }}</span>
                     </div>
 
                     <div class="mt-4 flex justify-end gap-2">
                         <button class="px-4 py-2 bg-gray-200 rounded" @click="showModal = false">
-                            Fermer
+                            Close
                         </button>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">
-                            Sauvegarder
+                        <button disabled v-if="isLoader" class="px-4 py-2 bg-blue-600 text-white rounded">
+                            <div class="spinner-border text-light" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </button>
+                        <button v-else type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">
+                            Save
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+        <div v-if="updateModal" class="fixed inset-0 bg-black/50 flex items-center justify-center" style="z-index: 1000;">
+            <div class="bg-white rounded-lg p-6 w-1/3">
+                <h2 class="text-lg font-semibold">Update a customer</h2>
+
+
+                <form class="mt-3 space-y-4" @submit.prevent="UpdateClient">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="">
+                            <label class="block text-sm font-medium text-gray-700">Nom</label>
+                            <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.nom}" placeholder="Entrez votre nom" v-model="getClient.nom">
+                            <span v-if="isEmpty.nom" class="text-danger">{{ msgInput.nom }}</span>
+                        </div>
+    
+                        <div class="">
+                            <label class="block text-sm font-medium text-gray-700">Prénom</label>
+                            <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.prenom}" placeholder="Entrez votre prénom" v-model="getClient.prenom">
+                            <span v-if="isEmpty.prenom" class="text-danger">{{ msgInput.prenom }}</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="">
+                            <label class="block text-sm font-medium text-gray-700">Email</label>
+                            <input type="email" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.email}" placeholder="Entrez votre email" v-model="getClient.email">
+                            <span v-if="isEmpty.email" class="text-danger">{{ msgInput.email }}</span>
+                        </div>
+    
+                        <div class="">
+                            <label class="block text-sm font-medium text-gray-700">Téléphone</label>
+                            <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.phone}" placeholder="Entrez votre téléphone" v-model="getClient.phone">
+                            <span v-if="isEmpty.phone" class="text-danger">{{ msgInput.phone }}</span>
+                        </div>
+                    </div>
+                    <div class="">
+                        <label class="block text-sm font-medium text-gray-700">Numéro pièce d'identité</label>
+                        <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.npiece}" placeholder="Entrez votre numéro pièce" v-model="getClient.npiece">
+                        <span v-if="isEmpty.npiece" class="text-danger">{{ msgInput.npiece }}</span>
+                    </div>
+
+                    <div class="mt-4 flex justify-end gap-2">
+                        <button class="px-4 py-2 bg-gray-200 rounded" @click="updateModal = false">
+                            Close
+                        </button>
+                        <button disabled v-if="isLoader" class="px-4 py-2 bg-blue-600 text-white rounded">
+                            <div class="spinner-border text-light" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </button>
+                        <button v-else type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">
+                            Save changes
                         </button>
                     </div>
 
@@ -83,10 +149,8 @@
 
     import { onMounted, ref } from 'vue';
     import DataTable from '../layout/Datatable.vue';
-    import { getData } from '../plugins/api';
-
-    let addmodal;
-    let updatemodal;
+    import { deleteData, getData, getSingleData, postData, putData } from '../plugins/api';
+    import Swal from 'sweetalert2';
 
     const allClients = ref([]);
     const data = ref({
@@ -102,6 +166,7 @@
     const getClient = ref({})
     
     const showModal = ref(false)
+    const updateModal = ref(false)
 
     async function AllCustomer() {
         try {
@@ -130,14 +195,10 @@
             title: 'Full Name',
             data: null,
             render: (data, type, row) => {
-                return `<div style="display:flex; align-items:center; justify-content: flex-start;">
+                return `<div style="display:flex; align-items:center; justify-content: flex-start;font-weight: 600;">
                         <span class="fw-bold" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.4em; max-height: 2.8em; word-break: break-word;" >${row.nom} ${row.prenom}</span>
                     </div>`;
             }
-        },
-        {
-            title: 'Phone',
-            data: 'phone', // Pas de data directe car on combine deux champs
         },
         {
             title: 'Email',
@@ -164,27 +225,124 @@
             searchable: false,
             render: function (data, type, row) {
                 return `
-                    <div class="d-flex justify-content-center">
-                        <div class="dropdown dropdown-action">
-                            <a href="#" class="btn-action-icon" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end">
-                                <a class="dropdown-item" onClick="showEventFunction(${row.id})"><i class="fas fa-edit"></i> Edit</a>
-                                <button class="dropdown-item delete-project" onClick="DeleteEventFunction(${row.id})"><i class="fas fa-trash"></i> Delete</button>
-                            </div>
-                        </div>
-                    </div>
+                    <button class="btn bg-primary text-white me-3" onClick="ShowClient(${row.id})"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="btn bg-danger text-white" onClick="DeleteClient(${row.id})"><i class="fas fa-trash"></i> Delete</button>
                 `;
             }
         }
     ];
 
+    async function AddCustomer() {
+        for (const field in data.value) {
+            isEmpty.value[field] = !data.value[field]
+            msgInput.value[field] = `Please enter ${field.replace('_', ' ')}`;
+        }
+        const allEmpty = Object.values(isEmpty.value).every(value => value === false)
+        if(allEmpty){
+            isLoader.value = true
+            await postData('/addclients',data.value).then(res=>{
+                if (res.status === 201) {
+                    isLoader.value = false
+                    showModal.value = false
+                    Swal.fire({
+                        position: "center",
+                        icon: "success",
+                        text: "Add performed",
+                        showConfirmButton: false,
+                        timer: 1500
+                    })
+                    data.value = {
+                        nom: '',
+                        prenom: '',
+                        phone: '',
+                        email: '',
+                        npiece: ''
+                    }
+                    AllCustomer();
+                }
+            })
+        }
+    }
+
+    async function ShowClient(id) {
+        await getSingleData('/clients/'+ id).then(res=>{
+            getClient.value = res.data.data
+            updateModal.value = true
+        })
+    }
+
+    async function UpdateClient(){
+        isLoader.value = true
+        await putData('/updateclients/'+getClient.value.id, getClient.value).then(res=>{
+            if (res.status === 200) {
+                isLoader.value = false
+                updateModal.value = false
+                Swal.fire({
+                    position: "center",
+                    icon: "success",
+                    text: "Update performed",
+                    showConfirmButton: false,
+                    timer: 1500
+                })
+                getClient.value = {}
+                AllCustomer();
+            }
+        })
+    }
+
+    async function DeleteClient(id) {
+        Swal.fire({
+            title: "Are you sure you want to delete this customer?",
+            text: "This action is irreversible.",
+            icon: "warning",
+            showCancelButton: true,
+            cancelButtonColor: "#d33",
+            confirmButtonColor: "#3085d6",
+            confirmButtonText: "Delete",
+            cancelButtonText: "Close"
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+
+                // Affiche un loader pendant la suppression
+                Swal.fire({
+                    text: "Deletion in progress...",
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                await deleteData('/deleteclients/'+id).then(res=>{
+                    if (res.status === 200) {
+                        Swal.fire({
+                            position: "center",
+                            icon: "success",
+                            text: "Delete performed",
+                            showConfirmButton: false,
+                            timer: 1500
+                        })
+                        AllCustomer();
+                    }
+                }).catch(error => {
+                    console.error("Error deleting customer:", error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'An error occurred while deleting the customer.'
+                    });
+                });
+            }
+        })
+    }
+
     onMounted(() => {
         AllCustomer();
+        window.ShowClient = ShowClient
+        window.DeleteClient = DeleteClient
     });
 
 </script>
-<style scoped>
+<style >
     
 </style>

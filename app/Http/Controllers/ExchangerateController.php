@@ -9,7 +9,7 @@ class ExchangerateController extends Controller
 {
     public function index()
     {
-        $data = Exchangerate::orderBy('id', 'desc')->get();
+        $data = Exchangerate::with(['fromCurrency', 'toCurrency'])->orderBy('id', 'desc')->get();
         return response()->json([
             'status' => 'success',
             'data' => $data
