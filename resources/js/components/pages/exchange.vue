@@ -18,12 +18,12 @@
         <div class="col-lg-12 mt-8">
             <div class="card overflow-hidden p-3">
                 <div class="card-header text-end">
-                    <button type="button" class="btn btn-lg bg-primary text-white">Add Exchanges</button>
+                    <button type="button" @click="showModal = true" class="btn btn-lg bg-primary text-white">Add Exchanges</button>
                 </div>
                 <div class="overflow-x-auto">
                     <div class="min-w-full inline-block align-middle">
                         <div class="overflow-hidden">
-                            <DataTable  />
+                            <DataTable :data="allMovements" :columns="columns" />
                         </div>
                     </div>
                 </div>
@@ -31,11 +31,271 @@
             </div> <!-- end card -->
         </div>
 
+        <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center" style="z-index: 1000;">
+            <div class="bg-white rounded-lg p-6 w-1/2">
+                <h2 class="text-lg font-semibold">Add movements</h2>
+
+
+                <form class="mt-3 space-y-4" @submit.prevent="AddMovementFunction">
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="">
+                            <label class="block text-sm font-medium text-gray-700">Accounts</label>
+                            <select name="account_id" id="account_id" v-model="data.account_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                                <option value="">Select Account</option>
+                                <option v-for="account in allAccount" :key="account.id" :value="account.id">{{ account.client?.nom }} {{ account.client?.prenom }} ({{ account.currency?.code }})</option>
+                            </select>
+                            <span v-if="isEmpty.account_id" class="text-danger">{{ msgInput.account_id }}</span>
+                        </div>
+    
+                        <div class="">
+                            <label class="block text-sm font-medium text-gray-700">Currency</label>
+                            <select name="currency_id" id="currency_id" v-model="data.currency_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                                <option value="">Select Currency</option>
+                                <option v-for="currency in allCurrency" :key="currency.id" :value="currency.id">{{ currency.name }}</option>
+                            </select>
+                            <span v-if="isEmpty.currency_id" class="text-danger">{{ msgInput.currency_id }}</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="">
+                            <label class="block text-sm font-medium text-gray-700">Type</label>
+                            <select name="type" id="type" v-model="data.type" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                                <option value="">Select Type</option>
+                                <option value="deposit">Deposit</option>
+                                <option value="withdraw">Withdrawal</option>
+                            </select>
+                            <span v-if="isEmpty.type" class="text-danger">{{ msgInput.type }}</span>
+                        </div>
+                        <div class="">
+                            <label class="block text-sm font-medium text-gray-700">Amount</label>
+                            <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.amount}" placeholder="Entrez le montant" v-model="data.amount">
+                            <span v-if="isEmpty.amount" class="text-danger">{{ msgInput.amount }}</span>
+                        </div>
+                     </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="">
+                            <label class="block text-sm font-medium text-gray-700">Rate</label>
+                            <select name="exchange_rate" id="exchange_rate" v-model="data.rate" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                                <option value="">Select Exchange Rate</option>
+                                <option v-for="rate in filteredExchange" :key="rate.id" :value="rate.rate">{{ rate.from_currency.code }} - {{ rate.to_currency.code }}</option>
+                            </select>
+                        </div>
+                        <div class="">
+                            <label class="block text-sm font-medium text-gray-700">Final Amount</label>
+                            <input disabled type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.final_amount}" placeholder="Entrez le montant final" v-model="data.final_amount">
+                            <span v-if="isEmpty.final_amount" class="text-danger">{{ msgInput.final_amount }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex justify-end gap-2">
+                        <button class="px-4 py-2 bg-gray-200 rounded" @click="showModal = false">
+                            Close
+                        </button>
+                        <button disabled v-if="isLoader" class="px-4 py-2 bg-blue-600 text-white rounded">
+                            <div class="spinner-border text-light" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </button>
+                        <button v-else type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">
+                            Save
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
     </main>
 </template>
 <script setup>
 
+    import { computed, onMounted, ref, watch } from 'vue';
     import DataTable from '../layout/Datatable.vue';
+    import { deleteData, getData, getSingleData, postData, putData } from '../plugins/api';
+    import Swal from 'sweetalert2';
+
+    const allMovements = ref([]);
+    const allAccount = ref([]);
+    const allCurrency = ref([]);
+    const allExchange = ref([]);
+    const data = ref({
+        account_id: '',
+        type: '',
+        amount: '',
+        rate: '',
+        final_amount: '',
+        currency_id: ''
+    });
+    const isEmpty = ref({})
+    const msgInput = ref({})
+    const isLoader = ref(false)
+    const getMovement = ref({})
+
+    const showModal = ref(false)
+    const updateModal = ref(false)
+
+    async function AllMovements(){
+        await getData('/movements').then(res => {
+            allMovements.value = res.data.data;
+        });
+    }
+
+    async function AllAccount() {
+        try {
+            await getData('/accounts').then(res=>{
+                allAccount.value = res.data.data
+            })
+        } catch (error) {
+            console.error("Error fetching accounts:", error);
+        }
+    }
+
+    async function AllCurrencyFunction() {
+        try {
+            await getData('/currencies').then(res=>{
+                allCurrency.value = res.data.data
+            })
+        } catch (error) {
+            console.error("Error fetching currencies:", error);
+        }
+    }
+
+    async function AllExchangeRate() {
+        try {
+            await getData('/exchangerates').then(res=>{
+                allExchange.value = res.data.data
+            })
+        } catch (error) {
+            console.error("Error fetching customers:", error);
+        }
+    }
+
+    // Filtrer les taux selon la devise choisie
+    const filteredExchange = computed(() => {
+        if (!data.value.currency_id) {
+            // Si aucune devise choisie => retourner toute la liste
+            return allExchange.value
+        }
+        // Sinon filtrer par currency_id
+        return allExchange.value.filter(rate => 
+            rate.from_currency.id === data.value.currency_id
+        )
+    })
+
+    const columns = [
+        {
+            title: `
+                <input class="form-check-input" type="checkbox" id="select-all" style="width:18px; height:18px;">
+            `,
+            data:null,
+            orderable: false,
+            searchable: false,
+            render: function (data, type, row) {
+                return `<input class="form-check-input row-checkbox" data-id="${row.id}" type="checkbox"  style="width:18px; height:18px;">`;
+            },
+            width: "40px"
+        },
+        {
+            title: 'Accounts',
+            data: 'account.code',
+        },
+        {
+            title: 'Type',
+            data: 'type',
+        },
+        {
+            title: 'Amount',
+            data: 'amount',
+        },
+        {
+            title: 'Rate',
+            data: 'rate',
+        },
+        {
+            title: 'Created At',
+            data: 'created_at',
+            render: (data, type, row) => {
+                const date = new Date(row.created_at);
+                return new Intl.DateTimeFormat('fr-FR', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                }).format(date);
+            }
+        },
+        {
+            title: 'Actions',
+            data: null,
+            orderable: false,
+            searchable: false,
+            render: function (data, type, row) {
+                return `
+                    <button class="btn bg-primary text-white me-3" onClick="ShowClient(${row.id})"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="btn bg-danger text-white" onClick="DeleteClient(${row.id})"><i class="fas fa-trash"></i> Delete</button>
+                `;
+            }
+        }
+    ];
+
+    async function AddMovementFunction() {
+        
+        for (const field in data.value) {
+            if (field === 'rate') continue;
+            isEmpty.value[field] = !data.value[field]
+            msgInput.value[field] = `Please enter ${field.replace('_', ' ')}`;
+        }
+        const allEmpty = Object.values(isEmpty.value).every(value => value === false)
+        if (allEmpty) {
+            isLoader.value = true
+            await postData('/addmovements', data.value).then(res=>{
+                if (res.status === 200) {
+                    isLoader.value = false
+                    showModal.value = false
+                    Swal.fire({
+                        position: "center",
+                        icon: "success",
+                        text: "Add performed",
+                        showConfirmButton: false,
+                        timer: 1500
+                    })
+                    data.value = {
+                        account_id: '',
+                        type: '',
+                        amount: '',
+                        rate: '',
+                        final_amount: '',
+                        currency_id: ''
+                    }
+                    AllMovements();
+                }
+            })
+        }
+
+    }
+
+    onMounted(() => {
+        AllMovements();
+        AllAccount()
+        AllCurrencyFunction()
+        AllExchangeRate()
+    });
+
+    watch(
+        [() => data.value.amount, () => data.value.rate],
+        ([amount, rate]) => {
+            if (amount && rate) {
+                // Calcul automatique du montant final
+                data.value.final_amount = (parseFloat(amount) * parseFloat(rate)).toFixed(2)
+            } else {
+                data.value.final_amount = amount
+            }
+        }
+    )
 
 </script>
 <style scoped>

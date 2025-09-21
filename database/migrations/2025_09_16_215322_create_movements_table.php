@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('account_id')->constrained()->onDelete('cascade');
             $table->enum('type',['deposit','withdraw']);
             $table->decimal('amount',15, 2);
-            $table->decimal('rate',15, 2)->nullable();
+            $table->decimal('rate',15, 6)->nullable();
             $table->decimal('final_amount', 15, 2);
             $table->foreignId('currency_id')->constrained()->onDelete('cascade');
             $table->timestamps();
