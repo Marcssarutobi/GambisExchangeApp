@@ -1,6 +1,6 @@
 export function loadDashboardLibrary() {
     "use strict";
-var options = {
+    var options = {
         series: [
             { name: "Total Order", data: [4, 10, 25, 12, 25, 18, 40, 22, 7] },
         ],

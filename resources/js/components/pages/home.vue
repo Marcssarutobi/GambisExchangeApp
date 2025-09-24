@@ -25,15 +25,13 @@
                 <div class="card-body">
                     <div class="flex items- justify-between">
                         <div>
-                            <p class="text-xs tracking-wide font-semibold uppercase text-default-700 mb-3">Cost
-                                per Unit</p>
-                            <h4 class="font-semibold text-2xl text-default-700">$85.50</h4>
+                            <p class="text-xs tracking-wide font-semibold uppercase text-default-700 mb-3">Total Balance</p>
+                            <h4 class="font-semibold text-2xl text-default-700">{{ balance }} XOF</h4>
                         </div>
 
                         <div
                             class="rounded-full flex justify-center items-center size-14 bg-primary/10 text-primary">
-                            <i
-                                class="material-symbols-rounded text-2xl transition-all group-hover:fill-1">shopping_bag</i>
+                            <i class="material-symbols-rounded text-2xl transition-all group-hover:fill-1">payments</i>
                         </div>
                     </div>
                 </div>
@@ -46,18 +44,17 @@
                     <div class="flex items- justify-between">
                         <div>
                             <p class="text-xs tracking-wide font-semibold uppercase text-default-700 mb-3">
-                                Market Revenue</p>
-                            <h4 class="font-semibold text-2xl text-default-700">$12,548.25</h4>
+                                Total Deposit / Day</p>
+                            <h4 class="font-semibold text-2xl text-default-700">{{ deposit }} XOF</h4>
                         </div>
 
                         <div
                             class="rounded-full flex justify-center items-center size-14 bg-secondary/10 text-secondary">
-                            <i
-                                class="material-symbols-rounded text-2xl transition-all group-hover:fill-1">payments</i>
+                            <i class="material-symbols-rounded text-2xl transition-all group-hover:fill-1">arrow_upward</i>
                         </div>
                     </div>
                 </div>
-                <div id="total-sale"></div>
+                <div id="total-deposit"></div>
             </div>
 
             <div
@@ -65,15 +62,14 @@
                 <div class="card-body">
                     <div class="flex items- justify-between">
                         <div>
-                            <p class="text-xs tracking-wide font-semibold uppercase text-default-700 mb-3">
-                                Expenses</p>
-                            <h4 class="font-semibold text-2xl text-default-700">$8,451.28</h4>
+                            <p class="text-xs tracking-wide font-semibold uppercase text-default-700 mb-3"> Total Withdrawal / Day</p>
+                            <h4 class="font-semibold text-2xl text-default-700">{{ withdrawal }} XOF</h4>
                         </div>
 
                         <div
                             class="rounded-full flex justify-center items-center size-14 bg-warning/10 text-warning">
                             <i
-                                class="material-symbols-rounded text-2xl transition-all group-hover:fill-1">visibility</i>
+                                class="material-symbols-rounded text-2xl transition-all group-hover:fill-1">arrow_downward</i>
                         </div>
                     </div>
                 </div>
@@ -85,14 +81,13 @@
                 <div class="card-body">
                     <div class="flex items- justify-between">
                         <div>
-                            <p class="text-xs tracking-wide font-semibold uppercase text-default-700 mb-3">Daily
-                                Visit</p>
-                            <h4 class="font-semibold text-2xl text-default-700">1,12,584</h4>
+                            <p class="text-xs tracking-wide font-semibold uppercase text-default-700 mb-3">Customer</p>
+                            <h4 class="font-semibold text-2xl text-default-700">{{ clients }}</h4>
                         </div>
 
                         <div class="rounded-full flex justify-center items-center size-14 bg-danger/10 text-danger">
                             <i
-                                class="material-symbols-rounded text-2xl transition-all group-hover:fill-1">account_balance</i>
+                                class="material-symbols-rounded text-2xl transition-all group-hover:fill-1">person</i>
                         </div>
                     </div>
                 </div>
@@ -328,6 +323,52 @@
     </main>
 </template>
 <script setup>
+    import { onMounted, ref } from 'vue';
+    import { getData } from '../plugins/api';
+    import {renderDepositGraph} from '../plugins/apex'
+
+    const balance = ref('')
+    const deposit = ref('')
+    const dailyDeposits = ref([])
+    const dailyDates = ref([])
+    const withdrawal = ref('')
+    const clients = ref('')
+
+    async function TotalBalance() {
+        await getData('/total-balance').then(res => {
+            balance.value = Number(res.data.totalBalance).toLocaleString("fr-FR")
+        })
+    }
+
+    async function TotalDeposit() {
+        await getData('/deposits-summary').then(res => {
+            deposit.value = Number(res.data.todayDeposits).toLocaleString("fr-FR")
+            dailyDeposits.value = res.data.dailyDeposits.map(item => parseFloat(item.total))
+            dailyDates.value = res.data.dailyDeposits.map(item => item.date)
+
+            // Affichage du graphique
+            renderDepositGraph(dailyDeposits.value, dailyDates.value);
+        })
+    }
+
+    async function TotalWithdrawal() {
+        await getData('/withdrawals-summary').then(res => {
+            withdrawal.value = Number(res.data.todayWithdrawals).toLocaleString("fr-FR")
+        })
+    }
+
+    async function TotalClients() {
+        await getData('/total-clients').then(res => {
+            clients.value = res.data.totalClients
+        })
+    }
+
+    onMounted(() => {
+        TotalBalance()
+        TotalDeposit()
+        TotalWithdrawal()
+        TotalClients()
+    })
 
 </script>
 <style scoped>

@@ -85,7 +85,7 @@
                         </div>
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Final Amount</label>
-                            <input disabled type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.final_amount}" placeholder="Entrez le montant final" v-model="data.final_amount">
+                            <input  disabled type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.final_amount}" placeholder="Entrez le montant final" v-model="data.final_amount">
                             <span v-if="isEmpty.final_amount" class="text-danger">{{ msgInput.final_amount }}</span>
                         </div>
                     </div>
@@ -112,7 +112,7 @@
 </template>
 <script setup>
 
-    import { computed, onMounted, ref, watch } from 'vue';
+    import { computed, onMounted, ref, render, watch } from 'vue';
     import DataTable from '../layout/Datatable.vue';
     import { deleteData, getData, getSingleData, postData, putData } from '../plugins/api';
     import Swal from 'sweetalert2';
@@ -209,10 +209,18 @@
         {
             title: 'Amount',
             data: 'amount',
+            render: (data, type, row) => {
+                if (!row.amount) return "";
+                return `${Number(row.amount).toLocaleString("fr-FR")} ${row.currency?.code}`;
+            }
         },
         {
             title: 'Rate',
             data: 'rate',
+            render: (data, type, row) => {
+                if (!row.rate) return "";
+                return `${row.rate} ${row.account?.currency?.code}`;
+            }
         },
         {
             title: 'Created At',
@@ -272,6 +280,17 @@
                         currency_id: ''
                     }
                     AllMovements();
+                }
+            }).catch(err =>{
+                isLoader.value = false
+                if (err.response.status === 400) {
+                    Swal.fire({
+                        position: "center",
+                        icon: "error",
+                        text: err.response.data.message,
+                        showConfirmButton: false,
+                        timer: 1500
+                    }) 
                 }
             })
         }

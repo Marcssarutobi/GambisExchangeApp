@@ -51,7 +51,7 @@
                             <label class="block text-sm font-medium text-gray-700">Currency</label>
                             <select name="currency_id" id="currency_id" v-model="data.currency_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
                                 <option value="">Select Currency</option>
-                                <option v-for="currency in allCurrency" :key="currency.id" :value="currency.id">{{ currency.name }}</option>
+                                <option v-for="currency in allCurrency" :key="currency.id" :value="currency.id">{{ currency.code }}</option>
                             </select>
                             <span v-if="isEmpty.currency_id" class="text-danger">{{ msgInput.currency_id }}</span>
                         </div>
@@ -133,7 +133,7 @@
 </template>
 <script setup>
 
-    import { onMounted, ref } from 'vue';
+    import { computed, onMounted, ref } from 'vue';
     import DataTable from '../layout/Datatable.vue';
     import { deleteData, getData, getSingleData, postData, putData } from '../plugins/api';
     import Swal from 'sweetalert2';
@@ -217,7 +217,8 @@
             title: 'Balance',
             data: null,
             render: function (data, type, row) {
-                return `${row.balance}`;
+                if (!row.balance) return "";
+                return Number(row.balance).toLocaleString("fr-FR");
             }
         },
         {

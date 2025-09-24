@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CurrencyController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExchangerateController;
 use App\Http\Controllers\MovementController;
 use Illuminate\Http\Request;
@@ -68,5 +69,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/addmovements', [MovementController::class, 'store']);
     Route::put('/updatemovements/{id}', [MovementController::class, 'update']);
     Route::delete('/deletemovements/{id}', [MovementController::class, 'destroy']);
+
+    //DashboardController
+    Route::get('/total-balance', [DashboardController::class, 'totalBalance']);
+    Route::get('/deposits-summary', [DashboardController::class, 'depositsSummary']);
+    Route::get('/withdrawals-summary', [DashboardController::class, 'withdrawalsSummary']);
+    Route::get('/total-clients', [DashboardController::class, 'totalClients']);
 
 });
