@@ -4,10 +4,10 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Gambis Exchange</title>
+        <title>Agex Change</title>
 
         <!-- App favicon -->
-        <link rel="shortcut icon" href="{{ asset('assets/images/favicon.ico') }}">
+        <link rel="shortcut icon" href="{{ asset('assets/images/faveicone.png') }}">
 
         <!-- Icons css  (Mandatory in All Pages) -->
         <link href="{{ asset('assets/css/icons.min.css') }}" rel="stylesheet" type="text/css">

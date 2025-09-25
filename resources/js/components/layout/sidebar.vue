@@ -7,7 +7,7 @@
             <!-- Sidenav Logo -->
             <div class="sticky top-0 flex h-topbar items-center justify-center px-6">
                 <a href="index.html">
-                    <img src="/assets/images/logo-dark.png" alt="logo" class="flex h-6">
+                    <img src="/assets/images/logoG.png" alt="logo" class="flex h-12 w-auto">
                 </a>
             </div>
 

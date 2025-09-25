@@ -75,5 +75,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/deposits-summary', [DashboardController::class, 'depositsSummary']);
     Route::get('/withdrawals-summary', [DashboardController::class, 'withdrawalsSummary']);
     Route::get('/total-clients', [DashboardController::class, 'totalClients']);
+    Route::get('/financial-summary', [DashboardController::class, 'financialSummary']);
+    Route::get('/exchange-rates-donut', [DashboardController::class, 'exchangeRatesDonut']);
+    Route::get('/last-clients', [DashboardController::class, 'lastClients']);
+    Route::get('/last-movements', [DashboardController::class, 'lastMovements']);
 
 });
