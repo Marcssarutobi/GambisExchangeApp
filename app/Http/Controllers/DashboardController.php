@@ -131,7 +131,7 @@ class DashboardController extends Controller
             ->join('currencies as c1', 'e.from_currency_id', '=', 'c1.id')
             ->join('currencies as c2', 'e.to_currency_id', '=', 'c2.id')
             ->select(
-                DB::raw("c1.code || ' → ' || c2.code as label"),
+                DB::raw("CONCAT(c1.code, ' → ', c2.code) as label"),
                 'e.rate as value'
             )
             ->get();
