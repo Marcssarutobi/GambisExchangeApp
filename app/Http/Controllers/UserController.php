@@ -9,14 +9,16 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function index(){
-        $user = User::orderBy('id','desc')->get();
+    public function index()
+    {
+        $user = User::orderBy('id', 'desc')->get();
         return response()->json([
             'users' => $user
         ]);
     }
 
-    public function show($id){
+    public function show($id)
+    {
         $user = User::find($id);
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
@@ -26,7 +28,8 @@ class UserController extends Controller
         ]);
     }
 
-    public function store(Request $request){
+    public function store(Request $request)
+    {
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -45,7 +48,8 @@ class UserController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id){
+    public function update(Request $request, $id)
+    {
         $data = User::find($id);
         $user = $data->update($request->all());
         return response()->json([
@@ -53,7 +57,8 @@ class UserController extends Controller
         ]);
     }
 
-    public function destroy($id){
+    public function destroy($id)
+    {
         $data = User::find($id);
         $user = $data->delete();
         return response()->json([
@@ -61,10 +66,11 @@ class UserController extends Controller
         ]);
     }
 
-    public function login(Request $request){
+    public function login(Request $request)
+    {
         $request->validate([
-            "email"=>"required",
-            "password"=>"required",
+            "email" => "required",
+            "password" => "required",
         ]);
 
 
@@ -72,9 +78,9 @@ class UserController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (!Auth::attempt($credentials)) {
-           return response()->json([
-            "message"=>"Identifiants incorrects"
-           ],401);
+            return response()->json([
+                "message" => "Identifiants incorrects"
+            ], 401);
         }
 
         $user = Auth::user();
@@ -83,28 +89,30 @@ class UserController extends Controller
 
 
         return response()->json([
-            'message'=>'Connexion réussie',
-            'user'=>$user,
+            'message' => 'Connexion réussie',
+            'user' => $user,
             'token' => $token
         ]);
     }
 
-    public function getUser(Request $request){
+    public function getUser(Request $request)
+    {
         $user = User::find(Auth::id());
         return response()->json([
             "user" => $user,
         ]);
     }
 
-    public function logout(Request $request){
+    public function logout(Request $request)
+    {
         $user = Auth::user();
         if ($user) {
 
             $request->user()->currentAccessToken()->delete();
 
             return response()->json([
-                "message"=>"Deconnexion"
-            ],200);
+                "message" => "Deconnexion"
+            ], 200);
         }
     }
 }

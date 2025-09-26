@@ -5,9 +5,9 @@
             <div class="px-6 w-full flex items-center justify-between gap-4">
                 <div class="flex items-center gap-5">
                     <!-- Sidenav Menu Toggle Button -->
-                    <button
+                    <button @click="toggleSidebar"
                         class="flex items-center text-default-500 rounded-full cursor-pointer p-2 bg-white border border-default-200 hover:bg-primary/15 hover:text-primary hover:border-primary/5 transition-all"
-                        data-hs-overlay="#app-menu" aria-label="Toggle navigation">
+                        aria-label="Toggle navigation">
                         <i class="i-lucide-align-left text-2xl"></i>
                     </button>
 
@@ -17,7 +17,7 @@
                     </a>
 
                     <!-- Topbar Search -->
-                    <div class="md:flex hidden items-center relative">
+                    <!-- <div class="md:flex hidden items-center relative">
                         <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                             <i class="i-tabler-search text-base"></i>
                         </div>
@@ -27,7 +27,7 @@
                         <button type="button" class="absolute inset-y-0 end-0 flex items-center pe-3">
                             <i class="i-tabler-microphone text-base hover:text-black"></i>
                         </button>
-                    </div>
+                    </div> -->
                 </div>
 
                 <div class="flex items-center gap-5">
@@ -146,37 +146,31 @@
 
                     <!-- Profile Dropdown Button -->
                     <div class="relative">
-                        <div class="hs-dropdown relative inline-flex [--placement:bottom-right]">
-                            <button type="button" class="hs-dropdown-toggle">
-                                <img src="/assets/images/users/avatar-8.jpg" alt="user-image" class="rounded-full h-10">
+                        <div class="relative inline-flex">
+                            <button type="button" @click="toggleDropdown" class="focus:outline-none focus:ring-2 focus:ring-primary/20" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                <img src="/assets/images/users/profil.jpg" alt="user-image" class="rounded-full h-10">
+                                <span style="font-weight: 700;">{{ currentUser.name }}</span>
                             </button>
-                            <div
-                                class="hs-dropdown-menu duration mt-2 min-w-48 rounded-lg border border-default-200 bg-white p-2 opacity-0 shadow-md transition-[opacity,margin] hs-dropdown-open:opacity-100 hidden">
+                            <div v-show="isDropdownOpen"
+                                class="absolute right-0 mt-12 min-w-48 rounded-lg border border-default-200 bg-white p-2 shadow-md z-50"
+                                :class="{ 'opacity-100': isDropdownOpen, 'opacity-0': !isDropdownOpen }">
                                 <a class="flex items-center py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100"
                                     href="#">
                                     Profile
                                 </a>
-                                <a class="flex items-center py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100"
-                                    href="#">
-                                    Feed
-                                </a>
-                                <a class="flex items-center py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100"
-                                    href="#">
-                                    Analytics
-                                </a>
-                                <a class="flex items-center py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100"
+                                <!-- <a class="flex items-center py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100"
                                     href="#">
                                     Settings
                                 </a>
                                 <a class="flex items-center py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100"
                                     href="#">
                                     Support
-                                </a>
+                                </a> -->
 
                                 <hr class="my-2 -mx-2">
 
-                                <a class="flex items-center py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100"
-                                    href="#">
+                                <a @click="LogoutFunction" class="flex items-center py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100"
+                                    style="cursor: pointer;">
                                     Log Out
                                 </a>
                             </div>
@@ -189,8 +183,82 @@
     <!-- Topbar End -->
 </template>
 <script setup>
-    
-</script>
-<style scoped>
+import { ref, onMounted, onUnmounted } from 'vue'
+import { isAuthenticated } from '../router'
+import { postData } from '../plugins/api'
+import { useRouter } from 'vue-router'
 
-</style>
+const isDropdownOpen = ref(false)
+const isSidebarOpen = ref(false)
+
+const currentUser = ref([])
+const router = useRouter()
+
+const GetCurrentUser = async ()=>{
+    currentUser.value = await isAuthenticated()
+}
+
+const toggleDropdown = () => {
+    isDropdownOpen.value = !isDropdownOpen.value
+}
+
+const toggleSidebar = () => {
+    isSidebarOpen.value = !isSidebarOpen.value
+    const sidebar = document.getElementById('app-menu')
+    if (sidebar) {
+        if (isSidebarOpen.value) {
+            sidebar.classList.remove('hidden', '-translate-x-full')
+            sidebar.classList.add('translate-x-0')
+            // Add backdrop
+            const backdrop = document.createElement('div')
+            backdrop.id = 'sidebar-backdrop'
+            backdrop.className = 'fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden'
+            backdrop.addEventListener('click', closeSidebar)
+            document.body.appendChild(backdrop)
+        } else {
+            closeSidebar()
+        }
+    }
+}
+
+const closeSidebar = () => {
+    isSidebarOpen.value = false
+    const sidebar = document.getElementById('app-menu')
+    if (sidebar) {
+        sidebar.classList.add('hidden', '-translate-x-full')
+        sidebar.classList.remove('translate-x-0')
+    }
+    // Remove backdrop
+    const backdrop = document.getElementById('sidebar-backdrop')
+    if (backdrop) {
+        backdrop.remove()
+    }
+}
+
+const closeDropdown = (event) => {
+    // Close dropdown if clicking outside
+    if (!event.target.closest('.relative')) {
+        isDropdownOpen.value = false
+    }
+}
+
+const LogoutFunction = async ()=>{
+    await postData('/logout',null).then(res=>{
+        if (res.status === 200) {
+            localStorage.removeItem('token')
+            currentUser.value = []
+            router.push('/login')
+        }
+    })
+}
+
+onMounted(() => {
+    document.addEventListener('click', closeDropdown)
+    GetCurrentUser()
+})
+
+onUnmounted(() => {
+    document.removeEventListener('click', closeDropdown)
+})
+</script>
+<style scoped></style>

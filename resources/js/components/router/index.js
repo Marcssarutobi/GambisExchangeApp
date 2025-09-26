@@ -3,10 +3,10 @@ import axiosInstance from "../plugins/axios";
 
 const routes = [
     {
-        path:'/',
-        component: ()=>import('../layout/contentWrapper.vue'),
+        path: '/',
+        component: () => import('../layout/contentWrapper.vue'),
         meta: { requiresAuth: true },
-        children:[
+        children: [
             {
                 path: '',
                 component: () => import('../pages/home.vue')
@@ -16,24 +16,24 @@ const routes = [
                 component: () => import('../pages/customer.vue')
             },
             {
-                path:'account',
+                path: 'account',
                 component: () => import('../pages/accounts.vue')
             },
             {
-                path:'exchange',
-                component: ()=>import('../pages/exchange.vue')
+                path: 'exchange',
+                component: () => import('../pages/exchange.vue')
             },
             {
-                path:'currency',
-                component: ()=>import('../pages/currency.vue')
+                path: 'currency',
+                component: () => import('../pages/currency.vue')
             },
             {
-                path:'rate',
-                component: ()=>import('../pages/rate.vue')
+                path: 'rate',
+                component: () => import('../pages/rate.vue')
             },
             {
-                path:'user',
-                component: ()=>import('../pages/user.vue')
+                path: 'user',
+                component: () => import('../pages/user.vue')
             }
         ]
     },
@@ -61,8 +61,8 @@ const router = createRouter({
 
 export async function isAuthenticated() {
     try {
-        
-        const res = await axiosInstance.get('/user',{
+
+        const res = await axiosInstance.get('/user', {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
@@ -79,12 +79,14 @@ export async function isAuthenticated() {
     }
 }
 
+
+
 router.beforeEach(async (to, from, next) => {
-    if (to.matched.some((record) => record.meta.requiresAuth)){
+    if (to.matched.some((record) => record.meta.requiresAuth)) {
         try {
             const auth = await isAuthenticated()
             const token = localStorage.getItem("token");
-            if (auth && token){
+            if (auth && token) {
                 //Vérifier si le statut de l'utilisateur est égal à inactive
                 if (auth.status === 'inactive') {
                     localStorage.removeItem("token");
@@ -92,7 +94,7 @@ router.beforeEach(async (to, from, next) => {
                     return next('/login');
                 }
                 next()
-            }else{
+            } else {
                 localStorage.setItem('redirectAfterLogin', to.fullPath); // <- ici
                 next('/login')
             }
@@ -103,7 +105,7 @@ router.beforeEach(async (to, from, next) => {
             );
             next("/login");
         }
-    }else{
+    } else {
         // Rediriger les utilisateurs authentifiés accédant à la page de connexion
         if (to.path === '/login') {
             const auth = await isAuthenticated()
