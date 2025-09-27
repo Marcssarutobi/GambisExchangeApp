@@ -40,6 +40,18 @@ const routes = [
     {
         path: '/login',
         component: () => import('../pages/login.vue')
+    },
+    {
+        path: '/forgot-password',
+        component: () => import('../pages/forgotPassword.vue')
+    },
+    {
+        path: '/verify-code',
+        component: () => import('../pages/verifyCode.vue')
+    },
+    {
+        path: '/change-password',
+        component: () => import('../pages/changePassword.vue')
     }
 ];
 

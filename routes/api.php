@@ -23,6 +23,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/login',[UserController::class, 'login']);
 
+//SendResetCode
+Route::post('/sendcode', [UserController::class, 'sendResetCode']);
+//VerifyCode
+Route::post('/verifycode', [UserController::class, 'verifyResetCode']);
+
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/logout',[UserController::class, 'logout']);
@@ -34,6 +39,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/addusers', [UserController::class, 'store']);
     Route::put('/updateusers/{id}', [UserController::class, 'update']);
     Route::delete('/deleteusers/{id}', [UserController::class, 'destroy']);
+    Route::put('/updatepwd/{id}', [UserController::class, 'changePassword']);
+    Route::put('/resetpasswords/{id}',[UserController::class, 'resetPassword']);
 
     //Account
     Route::get('/accounts', [AccountController::class, 'index']);
