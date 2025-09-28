@@ -9,35 +9,43 @@ const routes = [
         children: [
             {
                 path: '',
-                component: () => import('../pages/home.vue')
+                component: () => import('../pages/home.vue'),
+                meta: { role: ['admin', 'caissier'] } // Accès pour les rôles 'admin' et 'caissier'
             },
             {
                 path: 'customer',
-                component: () => import('../pages/customer.vue')
+                component: () => import('../pages/customer.vue'),
+                meta: { role: ['admin', 'caissier'] } // Accès pour les rôles 'admin' et 'user'
             },
             {
                 path: 'account',
-                component: () => import('../pages/accounts.vue')
+                component: () => import('../pages/accounts.vue'),
+                meta: { role: ['admin', 'caissier'] }
             },
             {
                 path: 'exchange',
-                component: () => import('../pages/exchange.vue')
+                component: () => import('../pages/exchange.vue'),
+                meta: { role: ['admin', 'caissier'] }
             },
             {
                 path: 'currency',
-                component: () => import('../pages/currency.vue')
+                component: () => import('../pages/currency.vue'),
+                meta: { role: ['admin'] } // Accès uniquement pour le rôle 'admin'
             },
             {
                 path: 'rate',
-                component: () => import('../pages/rate.vue')
+                component: () => import('../pages/rate.vue'),
+                meta: { role: ['admin'] }
             },
             {
                 path: 'user',
-                component: () => import('../pages/user.vue')
+                component: () => import('../pages/user.vue'),
+                meta: { role: ['admin'] }
             },
             {
                 path: 'profile',
-                component: () => import('../pages/profile.vue')
+                component: () => import('../pages/profile.vue'),
+                meta: { role: ['admin', 'caissier'] }
             }
         ]
     },
@@ -56,6 +64,10 @@ const routes = [
     {
         path: '/change-password',
         component: () => import('../pages/changePassword.vue')
+    },
+    {
+        path: '/unauthorized',
+        component: () => import('../pages/unauthorized.vue')
     }
 ];
 
@@ -109,6 +121,13 @@ router.beforeEach(async (to, from, next) => {
                     localStorage.setItem('redirectAfterLogin', to.fullPath);
                     return next('/login');
                 }
+
+                // ✅ Vérification du rôle
+                if (to.meta.role && !to.meta.role.includes(auth.role)) {
+                    // L'utilisateur n'a pas accès à cette route
+                    return next('/unauthorized') // ou next('/') pour renvoyer à l'accueil
+                }
+
                 next()
             } else {
                 localStorage.setItem('redirectAfterLogin', to.fullPath); // <- ici
