@@ -76,8 +76,6 @@
         if (allEmpty) {
             try {
                 isLoader.value = true
-                
-
                 const res = await postData('/verifycode', data.value)
                 if (res.status === 200) {
                     isLoader.value = false
@@ -93,8 +91,7 @@
                         showConfirmButton: false,
                         timer: 3000
                     })
-                    addmodal.hide()
-                    window.location.href = "/changePassword"
+                    window.location.href = "/change-password"
                 }
             } catch (error) {
                 console.log(error)

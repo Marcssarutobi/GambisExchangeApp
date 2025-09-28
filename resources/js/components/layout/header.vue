@@ -154,10 +154,10 @@
                             <div v-show="isDropdownOpen"
                                 class="absolute right-0 mt-12 min-w-48 rounded-lg border border-default-200 bg-white p-2 shadow-md z-50"
                                 :class="{ 'opacity-100': isDropdownOpen, 'opacity-0': !isDropdownOpen }">
-                                <a class="flex items-center py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100"
-                                    href="#">
+                                <RouterLink class="flex items-center py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100"
+                                    to="/profile">
                                     Profile
-                                </a>
+                                </RouterLink>
                                 <!-- <a class="flex items-center py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100"
                                     href="#">
                                     Settings

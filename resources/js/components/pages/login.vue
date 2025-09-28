@@ -5,7 +5,7 @@
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
                     <RouterLink to="/" class="mb-4"
                         style="width: 100%; height: 40px; display: flex; justify-content: center; align-items: center;">
-                        <img src="/assets/images/logo-dark.png" alt=""
+                        <img src="/assets/images/logoG.png" alt=""
                             style="max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: contain;">
                     </RouterLink>
                     <h4 class="mb-12">Sign In to your Account</h4>
