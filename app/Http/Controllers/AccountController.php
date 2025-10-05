@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Account;
+use App\Models\Movement;
+use Illuminate\Support\Facades\DB;
 
 class AccountController extends Controller
 {
@@ -27,7 +29,22 @@ class AccountController extends Controller
 
         $validate['code'] = $generatedCode;
 
+        DB::beginTransaction();
+
         $account = Account::create($validate);
+
+        if ($account->balance > 0) {
+            Movement::create([
+                'account_id'   => $account->id,
+                'type'         => 'deposit',
+                'amount'       => $account->balance,
+                'rate'         => null,
+                'final_amount' => $account->balance,
+                'currency_id'  => $account->currency_id,
+            ]);
+        }
+
+        DB::commit();
 
         return response()->json([
             'status' => 'success',

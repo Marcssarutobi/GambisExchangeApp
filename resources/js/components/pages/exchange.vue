@@ -70,7 +70,7 @@
                         </div>
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Amount</label>
-                            <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.amount}" placeholder="Entrez le montant" v-model="data.amount">
+                            <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.amount}" placeholder="Enter Amount" v-model="data.amount">
                             <span v-if="isEmpty.amount" class="text-danger">{{ msgInput.amount }}</span>
                         </div>
                      </div>
@@ -85,9 +85,15 @@
                         </div>
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Final Amount</label>
-                            <input  disabled type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.final_amount}" placeholder="Entrez le montant final" v-model="data.final_amount">
+                            <input  disabled type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.final_amount}" placeholder="Final Amount" v-model="data.final_amount">
                             <span v-if="isEmpty.final_amount" class="text-danger">{{ msgInput.final_amount }}</span>
                         </div>
+                    </div>
+
+                    <div class="">
+                        <label class="block text-sm font-medium text-gray-700">Performed By</label>
+                        <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.performed_by}" placeholder="Enter Performed By" v-model="data.performed_by">
+                        <span v-if="isEmpty.performed_by" class="text-danger">{{ msgInput.performed_by }}</span>
                     </div>
 
                     <div class="mt-4 flex justify-end gap-2">
@@ -127,7 +133,8 @@
         amount: '',
         rate: '',
         final_amount: '',
-        currency_id: ''
+        currency_id: '',
+        performed_by:''
     });
     const isEmpty = ref({})
     const msgInput = ref({})
@@ -201,10 +208,23 @@
         {
             title: 'Accounts',
             data: 'account.code',
+            render: (data, type, row) => {
+                if (!row.account) return "";
+                return `<span style="font-weight: bold;">${row.account.code}</span>`;
+            }
         },
         {
             title: 'Type',
             data: 'type',
+            render: (data, type, row) => {
+                if (row.type === 'deposit') {
+                    return `<span class="badge bg-success text-white p-1 rounded">Deposit</span>`;
+                } else if (row.type === 'withdraw') {
+                    return `<span class="badge bg-danger text-white p-1 rounded">Withdrawal</span>`;
+                } else {
+                    return row.type;
+                }
+            }
         },
         {
             title: 'Amount',
@@ -223,6 +243,34 @@
             }
         },
         {
+            title: 'Final Amount',
+            data: 'final_amount',
+            render: (data, type, row) => {
+                if (!row.final_amount) return "";
+                return `${Number(row.final_amount).toLocaleString("fr-FR")} ${row.account?.currency?.code}`;
+            }
+        },
+        {
+            title:'Balance Before',
+            data:'balance_before',
+            render: (data, type, row) => {
+                if (!row.balance_before) return "";
+                return `${Number(row.balance_before).toLocaleString("fr-FR")} ${row.account?.currency?.code}`;
+            }
+        },
+        {
+            title:'Balance After',
+            data:'balance_after',
+            render: (data, type, row) => {
+                if (!row.balance_after) return "";
+                return `${Number(row.balance_after).toLocaleString("fr-FR")} ${row.account?.currency?.code}`;
+            }
+        },
+        {
+            title: 'Performed By',
+            data: 'performed_by',
+        },
+        {
             title: 'Created At',
             data: 'created_at',
             render: (data, type, row) => {
@@ -236,18 +284,6 @@
                 }).format(date);
             }
         },
-        {
-            title: 'Actions',
-            data: null,
-            orderable: false,
-            searchable: false,
-            render: function (data, type, row) {
-                return `
-                    <button class="btn bg-primary text-white me-3" onClick="ShowClient(${row.id})"><i class="fas fa-edit"></i> Edit</button>
-                    <button class="btn bg-danger text-white" onClick="DeleteClient(${row.id})"><i class="fas fa-trash"></i> Delete</button>
-                `;
-            }
-        }
     ];
 
     async function AddMovementFunction() {

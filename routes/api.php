@@ -73,6 +73,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //Movement
     Route::get('/movements', [MovementController::class, 'index']);
     Route::get('/movements/{id}', [MovementController::class, 'show']);
+    Route::get('/movements/history/{accountId}', [MovementController::class, 'history']);
     Route::post('/addmovements', [MovementController::class, 'store']);
     Route::put('/updatemovements/{id}', [MovementController::class, 'update']);
     Route::delete('/deletemovements/{id}', [MovementController::class, 'destroy']);

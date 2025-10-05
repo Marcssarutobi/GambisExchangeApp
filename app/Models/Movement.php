@@ -16,6 +16,9 @@ class Movement extends Model
         'rate',
         'final_amount',
         'currency_id',
+        'performed_by',
+        'balance_before',
+        'balance_after',
     ];
 
     public function account()

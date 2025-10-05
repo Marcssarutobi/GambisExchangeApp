@@ -129,6 +129,64 @@
             </div>
         </div>
 
+        <div v-if="historyModal" class="fixed inset-0 bg-black/50 flex items-center justify-center" style="z-index: 1000;">
+            <div class="bg-white rounded-lg p-6 w-1/2 max-h-[80vh] overflow-y-auto">
+                <h2 class="text-lg font-semibold mb-4">History Accounts</h2>
+
+                <!-- Accordéon -->
+                <div class="border rounded-lg overflow-hidden mb-3" v-for="history in allHistory" :key="history.month">
+                    <button @click="toggleAccordion(history.month)" class="w-full flex justify-between items-center px-4 py-3 bg-primary-100 hover:bg-gray-200 transition">
+                        <span class="font-medium">{{ history.month }}</span>
+                        <svg
+                        :class="{'rotate-180': openAccordions[history.month]}"
+                        class="w-5 h-5 transform transition-transform duration-300"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div v-show="openAccordions[history.month]" class="px-4 py-3 border-t bg-white text-sm text-gray-700">
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full border border-gray-200">
+                                <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-gray-700">Created at</th>
+                                    <th class="px-4 py-2 text-left text-gray-700">Type</th>
+                                    <th class="px-4 py-2 text-left text-gray-700">Amount</th>
+                                    <th class="px-4 py-2 text-left text-gray-700">Rate</th>
+                                    <th class="px-4 py-2 text-left text-gray-700">Final Amount</th>
+                                    <th class="px-4 py-2 text-left text-gray-700">Balance after</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                    <tr :class="index % 2 === 0 ? 'bg-white' : 'bg-gray-50'" v-for="(data,index) in history.history" :key="index">
+                                        <td class="px-4 py-2">{{ formatDate(data.created_at) }}</td>
+                                        <td class="px-4 py-2">{{ data.type }}</td>
+                                        <td class="px-4 py-2">{{ data.amount }} {{ data.currency?.code }}</td>
+                                        <td class="px-4 py-2">{{ data.rate }}</td>
+                                        <td class="px-4 py-2">{{ data.final_amount }} {{ data.account?.currency?.code }}</td>
+                                        <td class="px-4 py-2">{{ data.balance_after }} {{ data.account?.currency?.code }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="mt-4 flex justify-end gap-2">
+                    <button class="px-4 py-2 bg-gray-200 rounded" @click="historyModal = false">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </main>
 </template>
 <script setup>
@@ -141,6 +199,7 @@
     const allAccount = ref([]);
     const allClients = ref([]);
     const allCurrency = ref([]);
+    const allHistory = ref([]);
     const data = ref({
         client_id: '',
         currency_id: '',
@@ -153,6 +212,8 @@
     
     const showModal = ref(false)
     const updateModal = ref(false)
+    const historyModal = ref(false)
+    const openAccordions = ref({});
 
     async function AllCustomer() {
         try {
@@ -232,12 +293,48 @@
             searchable: false,
             render: function (data, type, row) {
                 return `
+                    <button class="btn bg-white text-dark me-3" onClick="HistoryAccountFunction(${row.id})"><i class="fas fa-history"></i> History</button>
                     <button class="btn bg-primary text-white me-3" onClick="ShowAccountFunction(${row.id})"><i class="fas fa-edit"></i> Edit</button>
                     <button class="btn bg-danger text-white" onClick="DeleteAccountFunction(${row.id})"><i class="fas fa-trash"></i> Delete</button>
                 `;
             }
         }
     ];
+
+    async function HistoryAccountFunction(accountId) {
+        try {
+            await getData(`/movements/history/${accountId}`).then(res=>{
+                console.log(res.data.data);
+                allHistory.value = res.data.data;
+                historyModal.value = true
+            })
+        } catch (error) {
+            console.error("Error fetching history:", error);
+        }
+        
+    }
+
+    function toggleAccordion(month) {
+        // Si le mois est déjà ouvert, on le ferme
+        if (openAccordions.value[month]) {
+            openAccordions.value[month] = false;
+        } else {
+            // Fermer tous les autres mois
+            for (const key in openAccordions.value) {
+            openAccordions.value[key] = false;
+            }
+            // Ouvrir le mois cliqué
+            openAccordions.value[month] = true;
+        }
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Mois commence à 0
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
 
     async function AddAccountFunction() {
         for (const field in data.value) {
@@ -351,6 +448,7 @@
         AllCurrencyFunction()
         window.ShowAccountFunction = ShowAccountFunction
         window.DeleteAccountFunction = DeleteAccountFunction
+        window.HistoryAccountFunction = HistoryAccountFunction
     });
 
 </script>
