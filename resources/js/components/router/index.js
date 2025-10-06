@@ -43,6 +43,11 @@ const routes = [
                 meta: { role: ['admin'] }
             },
             {
+                path: 'currencypurchases',
+                component: () => import('../pages/CurrencyPurshases.vue'),
+                meta: { role: ['admin'] }
+            },
+            {
                 path: 'profile',
                 component: () => import('../pages/profile.vue'),
                 meta: { role: ['admin', 'caissier'] }

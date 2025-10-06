@@ -32,7 +32,7 @@
         </div>
 
         <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center" style="z-index: 1000;">
-            <div class="bg-white rounded-lg p-6 w-1/3">
+            <div class="bg-white rounded-lg p-6 w-full sm:w-3/4 md:w-2/3 lg:w-1/3 max-h-[90vh] lg:max-w-[50%] overflow-y-auto">
                 <h2 class="text-lg font-semibold">Add a Exchange</h2>
 
 
@@ -81,7 +81,7 @@
         </div>
 
         <div v-if="updateModal" class="fixed inset-0 bg-black/50 flex items-center justify-center" style="z-index: 1000;">
-            <div class="bg-white rounded-lg p-6 w-1/3">
+            <div class="bg-white rounded-lg p-6 w-full sm:w-3/4 md:w-2/3 lg:w-1/3 max-h-[90vh] lg:max-w-[50%] overflow-y-auto">
                 <h2 class="text-lg font-semibold">Update a Exchange</h2>
 
 

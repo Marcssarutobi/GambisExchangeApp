@@ -32,7 +32,7 @@
         </div>
 
         <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center" style="z-index: 1000;">
-            <div class="bg-white rounded-lg p-6 w-1/3">
+            <div class="bg-white rounded-lg p-6 w-full sm:w-3/4 md:w-2/3 lg:w-1/3 max-h-[90vh] lg:max-w-[50%] overflow-y-auto">
                 <h2 class="text-lg font-semibold">Add a Accounts</h2>
 
 
@@ -81,7 +81,7 @@
         </div>
 
         <div v-if="updateModal" class="fixed inset-0 bg-black/50 flex items-center justify-center" style="z-index: 1000;">
-            <div class="bg-white rounded-lg p-6 w-1/3">
+            <div class="bg-white rounded-lg p-6 w-full sm:w-3/4 md:w-2/3 lg:w-1/3 max-h-[90vh] lg:max-w-[50%] overflow-y-auto">
                 <h2 class="text-lg font-semibold">Update a accounts</h2>
 
 
@@ -130,7 +130,7 @@
         </div>
 
         <div v-if="historyModal" class="fixed inset-0 bg-black/50 flex items-center justify-center" style="z-index: 1000;">
-            <div class="bg-white rounded-lg p-6 w-1/2 max-h-[80vh] overflow-y-auto">
+            <div class="bg-white rounded-lg p-6 w-full sm:w-3/4 md:w-2/3 lg:w-1/2 max-h-[90vh] lg:max-w-[50%] overflow-y-auto">
                 <h2 class="text-lg font-semibold mb-4">History Accounts</h2>
 
                 <!-- Accordéon -->
@@ -155,22 +155,24 @@
                             <table class="min-w-full border border-gray-200">
                                 <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-4 py-2 text-left text-gray-700">Created at</th>
+                                    <th class="px-4 py-2 text-left text-gray-700">Description</th>
                                     <th class="px-4 py-2 text-left text-gray-700">Type</th>
                                     <th class="px-4 py-2 text-left text-gray-700">Amount</th>
                                     <th class="px-4 py-2 text-left text-gray-700">Rate</th>
                                     <th class="px-4 py-2 text-left text-gray-700">Final Amount</th>
                                     <th class="px-4 py-2 text-left text-gray-700">Balance after</th>
+                                    <th class="px-4 py-2 text-left text-gray-700">Created at</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                     <tr :class="index % 2 === 0 ? 'bg-white' : 'bg-gray-50'" v-for="(data,index) in history.history" :key="index">
-                                        <td class="px-4 py-2">{{ formatDate(data.created_at) }}</td>
+                                        <td class="px-4 py-2">{{ data.performed_by }}</td>
                                         <td class="px-4 py-2">{{ data.type }}</td>
                                         <td class="px-4 py-2">{{ data.amount }} {{ data.currency?.code }}</td>
                                         <td class="px-4 py-2">{{ data.rate }}</td>
                                         <td class="px-4 py-2">{{ data.final_amount }} {{ data.account?.currency?.code }}</td>
                                         <td class="px-4 py-2">{{ data.balance_after }} {{ data.account?.currency?.code }}</td>
+                                        <td class="px-4 py-2">{{ formatDate(data.created_at) }}</td>
                                     </tr>
                                 </tbody>
                             </table>

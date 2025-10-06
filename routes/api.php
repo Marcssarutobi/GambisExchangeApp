@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CurrencyController;
+use App\Http\Controllers\CurrencyPurchasesController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExchangerateController;
 use App\Http\Controllers\MovementController;
@@ -77,6 +78,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/addmovements', [MovementController::class, 'store']);
     Route::put('/updatemovements/{id}', [MovementController::class, 'update']);
     Route::delete('/deletemovements/{id}', [MovementController::class, 'destroy']);
+
+    //Currency Purchases
+    Route::get('/currencypurchases', [CurrencyPurchasesController::class, 'index']);
+    Route::get('/currencypurchases/{id}', [CurrencyPurchasesController::class, 'show']);
+    Route::post('/addcurrencypurchases', [CurrencyPurchasesController::class, 'store']);
+    Route::put('/updatecurrencypurchases/{id}', [CurrencyPurchasesController::class, 'edit']);
+    Route::delete('/deletecurrencypurchases/{id}', [CurrencyPurchasesController::class, 'destroy']);
+
+    Route::get('/gain', [CurrencyPurchasesController::class, 'expectedGains']);
 
     //DashboardController
     Route::get('/total-balance', [DashboardController::class, 'totalBalance']);

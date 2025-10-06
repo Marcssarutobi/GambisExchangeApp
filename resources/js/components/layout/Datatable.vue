@@ -1,8 +1,10 @@
 <template>
-    <DataTable :data="data" :columns="columns" :options="{responsive: true,autoWidth:false,language:{paginate:{previous:'Previous',next:'Next'}}}" class="table table-center table-hover">
-        <thead class=" table-primary"></thead>
+    <div class="table-responsive">
+        <DataTable :data="data" :columns="columns" :options="{responsive: true,autoWidth:false,language:{paginate:{previous:'Previous',next:'Next'}}}" class="table table-center table-hover">
+            <thead class=" bg-dark text-white"></thead>
 
-    </DataTable>
+        </DataTable>
+    </div>
 </template>
 
 <script setup>
@@ -177,5 +179,9 @@
         display: flex !important;
         align-items: center;
         gap: 30px;
+    }
+    thead th{
+        height: 50px !important;
+        padding: 0 10px;
     }
 </style>
