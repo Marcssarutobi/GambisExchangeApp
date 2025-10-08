@@ -150,6 +150,14 @@
                     </button>
 
                     <div v-show="openAccordions[history.month]" class="px-4 py-3 border-t bg-white text-sm text-gray-700">
+
+                        <div class="flex justify-end mb-2">
+                            <button 
+                                @click="exportToExcel(history.month, history.history, history.history[0]?.account?.client?.nom + ' ' + history.history[0]?.account?.client?.prenom)" 
+                                class="px-3 py-2 mb-2 bg-green-500 text-white rounded hover:bg-green-600 transition">
+                                📤 Exporter en Excel
+                            </button>
+                        </div>
                         
                         <div class="overflow-x-auto">
                             <table class="min-w-full border border-gray-200">
@@ -166,10 +174,10 @@
                                 </thead>
                                 <tbody>
                                     <tr :class="index % 2 === 0 ? 'bg-white' : 'bg-gray-50'" v-for="(data,index) in history.history" :key="index">
-                                        <td class="px-4 py-2">{{ data.performed_by }}</td>
+                                        <td class="px-4 py-2" style="font-weight: bold;">{{ data.performed_by ?? '-' }}</td>
                                         <td class="px-4 py-2">{{ data.type }}</td>
                                         <td class="px-4 py-2">{{ data.amount }} {{ data.currency?.code }}</td>
-                                        <td class="px-4 py-2">{{ data.rate }}</td>
+                                        <td class="px-4 py-2">{{ data.rate ?? '-' }}</td>
                                         <td class="px-4 py-2">{{ data.final_amount }} {{ data.account?.currency?.code }}</td>
                                         <td class="px-4 py-2">{{ data.balance_after }} {{ data.account?.currency?.code }}</td>
                                         <td class="px-4 py-2">{{ formatDate(data.created_at) }}</td>
@@ -197,6 +205,7 @@
     import DataTable from '../layout/Datatable.vue';
     import { deleteData, getData, getSingleData, postData, putData } from '../plugins/api';
     import Swal from 'sweetalert2';
+    import * as XLSX from 'xlsx'
 
     const allAccount = ref([]);
     const allClients = ref([]);
@@ -442,6 +451,63 @@
             }
         })
         
+    }
+
+    
+    function exportToExcel(month, historyData, accountName = "Inconnu") {
+        // 🧠 Données transformées pour le tableau
+        const formattedData = historyData.map(data => ({
+            "Description": data.performed_by,
+            "Type": data.type,
+            "Montant": `${data.amount} ${data.currency?.code || ''}`,
+            "Taux": data.rate,
+            "Montant final": `${data.final_amount} ${data.account?.currency?.code || ''}`,
+            "Solde après": `${data.balance_after} ${data.account?.currency?.code || ''}`,
+            "Date de création": new Date(data.created_at).toLocaleString()
+        }))
+
+        // 📝 Création de la feuille à partir des données
+        const ws = XLSX.utils.json_to_sheet(formattedData, { origin: "A3" })
+
+        // 🏷️ Ajout du titre dans la 1ère ligne
+        const title = [`Historique du mois de ${month} de ${accountName}`]
+        XLSX.utils.sheet_add_aoa(ws, [title], { origin: "A1" })
+
+        // Fusionner les cellules pour le titre (ex: de A1 à G1)
+        const columnCount = Object.keys(formattedData[0]).length
+        ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: columnCount - 1 } }]
+
+        // 💅 Styles (gras, alignement, couleur)
+        const range = XLSX.utils.decode_range(ws['!ref'])
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+            const cellRef = XLSX.utils.encode_cell({ r: 2, c: C }) // ligne 3 = en-têtes
+            if (!ws[cellRef]) continue
+            ws[cellRef].s = {
+                font: { bold: true, color: { rgb: "FFFFFF" } },
+                alignment: { horizontal: "center", vertical: "center" },
+                fill: { fgColor: { rgb: "4472C4" } } // bleu foncé
+            }
+        }
+
+        // Style pour le titre
+        if (ws['A1']) {
+            ws['A1'].s = {
+                font: { bold: true, sz: 16, color: { rgb: "FFFFFF" } },
+                alignment: { horizontal: "center", vertical: "center" },
+                fill: { fgColor: { rgb: "2F5597" } }
+            }
+        }
+
+        // 📏 Largeur automatique des colonnes
+        const colWidths = Object.keys(formattedData[0]).map(k => ({ wch: k.length + 10 }))
+        ws['!cols'] = colWidths
+
+        // 📘 Création du classeur
+        const wb = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(wb, ws, "Historique")
+
+        // 💾 Téléchargement du fichier
+        XLSX.writeFile(wb, `Historique_${month}_${accountName}.xlsx`)
     }
 
     onMounted(() => {

@@ -211,3 +211,30 @@ export function renderDonutChart(elementId, data) {
         data: data, // on reçoit les données en paramètre
     });
 }
+
+export function renderGainGraph(el, values, dates) {
+    const options = {
+        chart: {
+            type: 'area',
+            height: 160,
+            toolbar: { show: false },
+            sparkline: { enabled: true },
+        },
+        stroke: { curve: 'smooth', width: 2 },
+        colors: ['#00C851'],
+        dataLabels: { enabled: false },
+        series: [{ name: 'Gain', data: values }],
+        xaxis: {
+            categories: dates,
+            labels: { show: false },
+        },
+        yaxis: { labels: { show: false } },
+        tooltip: {
+            x: { format: 'yyyy-MM-dd' },
+            y: { formatter: val => `${val.toLocaleString()} FCFA` },
+        },
+    }
+
+    const chart = new ApexCharts(document.querySelector(el), options)
+    chart.render()
+}

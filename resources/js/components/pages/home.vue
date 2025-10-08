@@ -20,8 +20,7 @@
         <!-- Page Title End -->
 
         <div class="grid xl:grid-cols-4 md:grid-cols-2 gap-6 mb-6">
-            <div
-                class="card group overflow-hidden transition-all duration-500 hover:shadow-lg hover:-translate-y-0.5">
+            <div class="card group overflow-hidden transition-all duration-500 hover:shadow-lg hover:-translate-y-0.5">
                 <div class="card-body">
                     <div class="flex items- justify-between">
                         <div>

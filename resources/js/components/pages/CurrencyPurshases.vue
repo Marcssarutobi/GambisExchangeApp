@@ -15,6 +15,50 @@
         </div>
         <!-- Page Title End -->
 
+        <div class="grid xl:grid-cols-4 md:grid-cols-2 gap-6 mb-6">
+
+            <div v-for="(data,index) in gain" :key="index" class="card group overflow-hidden transition-all duration-500 hover:shadow-lg hover:-translate-y-0.5">
+                <div class="card-body">
+                    <div class="flex items- justify-between">
+                        <div>
+                            <p class="text-xs tracking-wide font-semibold uppercase text-default-700 mb-3">Gain {{ data.currency }}</p>
+                            <h4 class="font-semibold text-2xl"
+                                :class="{
+                                    'text-green-600': data.real_gain > 0,
+                                    'text-red-600': data.real_gain < 0,
+                                    'text-gray-800': data.real_gain == 0
+                                }"
+                            >
+                            {{ data.real_gain }} {{ data.currency }}
+                            </h4>
+                        </div>
+                        
+                        <div
+                            class="rounded-full flex justify-center items-center w-14 h-14  transition-colors duration-300"
+                            :class="{
+                            'bg-green-100': data.real_gain > 0,
+                            'bg-red-100': data.real_gain < 0,
+                            'bg-gray-200': data.real_gain == 0
+                            }"
+                        >
+                            <i
+                            class="material-symbols-rounded text-2xl"
+                            :class="{
+                                'text-green-600': data.real_gain > 0,
+                                'text-red-600': data.real_gain < 0,
+                                'text-gray-600': data.real_gain == 0
+                            }"
+                            >
+                            {{ data.real_gain > 0 ? 'arrow_upward' : (data.real_gain < 0 ? 'arrow_downward' : 'remove') }}
+                            </i>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
         <div class="col-lg-12 mt-8">
             <div class="card overflow-hidden p-3">
                 <div class="card-header text-end">
@@ -179,6 +223,7 @@
     import DataTable from '../layout/Datatable.vue';
     import { deleteData, getData, getSingleData, postData, putData } from '../plugins/api';
     import Swal from 'sweetalert2';
+    import {renderGainGraph} from '../plugins/apex'
 
     const showModal = ref(false)
     const updateModal = ref(false)
@@ -198,6 +243,7 @@
 
     const purchases = ref([])
     const allCurrency = ref([]);
+    const gain = ref([])
 
     const AllCurencyPurchases = async ()=>{
         await getData('/currencypurchases').then(res=>{
@@ -374,7 +420,22 @@
 
     async function GainFunction() {
         await getData('/gain').then(res=>{
-            console.log(res.data.data)
+            gain.value = res.data.data
+
+            // Pour chaque "gain", afficher le graph si daily_gains existe
+            gain.value.forEach((item, index) => {
+                const daily = item.daily_gains
+
+                // Si daily_gains est vide, on saute
+                if (!daily || Object.keys(daily).length === 0) return
+
+                const dates = Object.keys(daily)
+                const values = Object.values(daily)
+
+                // Appel de ta fonction apex personnalisée
+                renderGainGraph(`#gain-chart-${index}`, values, dates)
+            })
+
         })
     }
 

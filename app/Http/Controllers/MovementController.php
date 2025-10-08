@@ -108,8 +108,8 @@ class MovementController extends Controller
     public function history($accountId)
     {
         $movements = Movement::where('account_id', $accountId)
-            ->with('account.currency', 'currency')
-            ->orderBy('created_at', 'desc')
+            ->with(['account.client', 'account.currency', 'currency'])
+            ->orderBy('created_at', 'asc')
             ->get();
 
         // Groupement par mois + année
