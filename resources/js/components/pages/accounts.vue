@@ -130,7 +130,7 @@
         </div>
 
         <div v-if="historyModal" class="fixed inset-0 bg-black/50 flex items-center justify-center" style="z-index: 1000;">
-            <div class="bg-white rounded-lg p-6 w-full sm:w-3/4 md:w-2/3 lg:w-1/2 max-h-[90vh] lg:max-w-[50%] overflow-y-auto">
+            <div class="bg-white rounded-lg p-6 w-full sm:w-3/4 md:w-2/3 lg:w-1/2 max-h-[90vh] lg:max-w-[85%] overflow-y-auto">
                 <h2 class="text-lg font-semibold mb-4">History Accounts</h2>
 
                 <!-- Accordéon -->
@@ -175,11 +175,11 @@
                                 <tbody>
                                     <tr :class="index % 2 === 0 ? 'bg-white' : 'bg-gray-50'" v-for="(data,index) in history.history" :key="index">
                                         <td class="px-4 py-2" style="font-weight: bold;">{{ data.performed_by ?? '-' }}</td>
-                                        <td class="px-4 py-2">{{ data.type }}</td>
-                                        <td class="px-4 py-2">{{ data.amount }} {{ data.currency?.code }}</td>
+                                        <td class="px-4 py-2" style="text-transform: capitalize;">{{ data.type }}</td>
+                                        <td class="px-4 py-2">{{  Number(data.amount).toLocaleString("fr-FR") }} {{ data.currency?.code }}</td>
                                         <td class="px-4 py-2">{{ data.rate ?? '-' }}</td>
-                                        <td class="px-4 py-2">{{ data.final_amount }} {{ data.account?.currency?.code }}</td>
-                                        <td class="px-4 py-2">{{ data.balance_after }} {{ data.account?.currency?.code }}</td>
+                                        <td class="px-4 py-2">{{  Number(data.final_amount).toLocaleString("fr-FR") }} {{ data.account?.currency?.code }}</td>
+                                        <td class="px-4 py-2">{{  Number(data.balance_after).toLocaleString("fr-FR") }} {{ data.account?.currency?.code }}</td>
                                         <td class="px-4 py-2">{{ formatDate(data.created_at) }}</td>
                                     </tr>
                                 </tbody>
