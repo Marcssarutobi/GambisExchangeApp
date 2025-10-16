@@ -78,10 +78,7 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Rate</label>
-                            <select name="exchange_rate" id="exchange_rate" v-model="data.rate" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                                <option value="">Select Exchange Rate</option>
-                                <option v-for="rate in filteredExchange" :key="rate.id" :value="rate.rate">{{ rate.from_currency.code }} - {{ rate.to_currency.code }}</option>
-                            </select>
+                            <input type="number" min="0" v-model="data.rate" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
                         </div>
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Final Amount</label>
