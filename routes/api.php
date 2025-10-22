@@ -28,6 +28,7 @@ Route::post('/login',[UserController::class, 'login']);
 Route::post('/sendcode', [UserController::class, 'sendResetCode']);
 //VerifyCode
 Route::post('/verifycode', [UserController::class, 'verifyResetCode']);
+Route::get('/export-history/{month}', [MovementController::class, 'exportHistory']);
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -78,6 +79,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/addmovements', [MovementController::class, 'store']);
     Route::put('/updatemovements/{id}', [MovementController::class, 'update']);
     Route::delete('/deletemovements/{id}', [MovementController::class, 'destroy']);
+    
 
     //Currency Purchases
     Route::get('/currencypurchases', [CurrencyPurchasesController::class, 'index']);

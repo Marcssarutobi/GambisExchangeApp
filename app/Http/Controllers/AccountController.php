@@ -33,6 +33,8 @@ class AccountController extends Controller
 
         $account = Account::create($validate);
 
+        $account->load('client');
+
         if ($account->balance > 0) {
             Movement::create([
                 'account_id'   => $account->id,
@@ -41,6 +43,9 @@ class AccountController extends Controller
                 'rate'         => null,
                 'final_amount' => $account->balance,
                 'currency_id'  => $account->currency_id,
+                'performed_by'   => $account->client->nom . ' ' . $account->client->prenom,   // propriétaire du compte
+                'balance_before' => 0,                     // solde avant
+                'balance_after'  => $account->balance, 
             ]);
         }
 

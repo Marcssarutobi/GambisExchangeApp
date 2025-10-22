@@ -7,6 +7,8 @@ use App\Models\Movement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Exports\HistoryExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class MovementController extends Controller
 {
@@ -56,9 +58,6 @@ class MovementController extends Controller
                 if ($request->type === 'deposit') {
                     $account->increment('balance', $finalAmount);
                 } elseif ($request->type === 'withdraw') {
-                    if ($balanceBefore < $finalAmount) {
-                        throw new \Exception("Solde insuffisant");
-                    }
                     $account->decrement('balance', $finalAmount);
                 }
 
@@ -130,6 +129,29 @@ class MovementController extends Controller
             'status' => 'success',
             'data' => $result
         ]);
+    }
+
+    public function exportHistory($month)
+    {
+        // Récupérer le premier mouvement du mois pour obtenir les infos du compte/client
+        $firstMovement = Movement::with(['account.client'])
+            ->whereMonth('created_at', Carbon::parse($month)->month)
+            ->whereYear('created_at', Carbon::parse($month)->year)
+            ->first();
+
+        if (!$firstMovement) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Aucun historique trouvé pour ce mois.',
+            ], 404);
+        }
+
+        // Nom du client
+        $accountName = trim(($firstMovement->account->client->nom ?? '') . ' ' . ($firstMovement->account->client->prenom ?? '')) ?: 'Inconnu';
+        $fileName = "Historique_{$month}_{$accountName}.xlsx";
+
+        // Export
+        return Excel::download(new HistoryExport($month, $accountName), $fileName);
     }
 
     public function update(Request $request, $id)

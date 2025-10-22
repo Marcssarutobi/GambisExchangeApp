@@ -153,13 +153,13 @@
 
                         <div class="flex justify-end mb-2">
                             <button 
-                                @click="exportToExcel(history.month, history.history, history.history[0]?.account?.client?.nom + ' ' + history.history[0]?.account?.client?.prenom)" 
+                                @click="exportToExcel(history.month)" 
                                 class="px-3 py-2 mb-2 bg-green-500 text-white rounded hover:bg-green-600 transition">
                                 📤 Exporter en Excel
                             </button>
                         </div>
                         
-                        <div class="overflow-x-auto">
+                        <div class="table-responsive">
                             <table class="min-w-full border border-gray-200">
                                 <thead class="bg-gray-100">
                                 <tr>
@@ -178,8 +178,16 @@
                                         <td class="px-4 py-2" style="text-transform: capitalize;">{{ data.type }}</td>
                                         <td class="px-4 py-2">{{  Number(data.amount).toLocaleString("fr-FR") }} {{ data.currency?.code }}</td>
                                         <td class="px-4 py-2">{{ data.rate ?? '-' }}</td>
-                                        <td class="px-4 py-2">{{  Number(data.final_amount).toLocaleString("fr-FR") }} {{ data.account?.currency?.code }}</td>
-                                        <td class="px-4 py-2">{{  Number(data.balance_after).toLocaleString("fr-FR") }} {{ data.account?.currency?.code }}</td>
+                                        <td class="px-4 py-2">
+                                            <span :style="data.final_amount < 0 ? 'color:red; font-weight:bold' : ''">
+                                                {{ Number(data.final_amount).toLocaleString('fr-FR') }} {{ data.account?.currency?.code }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            <span :style="data.balance_after < 0 ? 'color:red; font-weight:bold' : ''">
+                                                {{ Number(data.balance_after).toLocaleString('fr-FR') }} {{ data.account?.currency?.code }}
+                                            </span>
+                                        </td>
                                         <td class="px-4 py-2">{{ formatDate(data.created_at) }}</td>
                                     </tr>
                                 </tbody>
@@ -290,7 +298,11 @@
             data: null,
             render: function (data, type, row) {
                 if (!row.balance) return "";
-                return Number(row.balance).toLocaleString("fr-FR");
+                const value = Number(row.balance).toLocaleString("fr-FR");
+                if (row.balance < 0) {
+                    return `<span style="color:red; font-weight:bold">${value}</span>`;
+                }
+                return value;
             }
         },
         {
@@ -372,11 +384,22 @@
                         currency_id: '',
                         balance: '',
                     }
+                }).catch(error=>{
+                    isLoader.value = false
+                    if (error.response && error.response.status === 422) {
+                        const errors = error.response.data.message;
+                        for (const key in errors) {
+                            if (errors.hasOwnProperty(key)) {
+                                msgInput.value[key] = errors[key][0];
+                                isEmpty.value[key] = true;
+                            }
+                        }
+                    } 
                 })
             } catch (error) {
                 isLoader.value = false
                 if (error.response && error.response.status === 422) {
-                    const errors = error.response.data.errors;
+                    const errors = error.response.data.message;
                     for (const key in errors) {
                         if (errors.hasOwnProperty(key)) {
                             msgInput.value[key] = errors[key][0];
@@ -454,60 +477,9 @@
     }
 
     
-    function exportToExcel(month, historyData, accountName = "Inconnu") {
-        // 🧠 Données transformées pour le tableau
-        const formattedData = historyData.map(data => ({
-            "Description": data.performed_by,
-            "Type": data.type,
-            "Montant": `${data.amount} ${data.currency?.code || ''}`,
-            "Taux": data.rate,
-            "Montant final": `${data.final_amount} ${data.account?.currency?.code || ''}`,
-            "Solde après": `${data.balance_after} ${data.account?.currency?.code || ''}`,
-            "Date de création": new Date(data.created_at).toLocaleString()
-        }))
-
-        // 📝 Création de la feuille à partir des données
-        const ws = XLSX.utils.json_to_sheet(formattedData, { origin: "A3" })
-
-        // 🏷️ Ajout du titre dans la 1ère ligne
-        const title = [`Historique du mois de ${month} de ${accountName}`]
-        XLSX.utils.sheet_add_aoa(ws, [title], { origin: "A1" })
-
-        // Fusionner les cellules pour le titre (ex: de A1 à G1)
-        const columnCount = Object.keys(formattedData[0]).length
-        ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: columnCount - 1 } }]
-
-        // 💅 Styles (gras, alignement, couleur)
-        const range = XLSX.utils.decode_range(ws['!ref'])
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-            const cellRef = XLSX.utils.encode_cell({ r: 2, c: C }) // ligne 3 = en-têtes
-            if (!ws[cellRef]) continue
-            ws[cellRef].s = {
-                font: { bold: true, color: { rgb: "FFFFFF" } },
-                alignment: { horizontal: "center", vertical: "center" },
-                fill: { fgColor: { rgb: "4472C4" } } // bleu foncé
-            }
-        }
-
-        // Style pour le titre
-        if (ws['A1']) {
-            ws['A1'].s = {
-                font: { bold: true, sz: 16, color: { rgb: "FFFFFF" } },
-                alignment: { horizontal: "center", vertical: "center" },
-                fill: { fgColor: { rgb: "2F5597" } }
-            }
-        }
-
-        // 📏 Largeur automatique des colonnes
-        const colWidths = Object.keys(formattedData[0]).map(k => ({ wch: k.length + 10 }))
-        ws['!cols'] = colWidths
-
-        // 📘 Création du classeur
-        const wb = XLSX.utils.book_new()
-        XLSX.utils.book_append_sheet(wb, ws, "Historique")
-
-        // 💾 Téléchargement du fichier
-        XLSX.writeFile(wb, `Historique_${month}_${accountName}.xlsx`)
+    async function exportToExcel(month) {
+        const url = `/api/export-history/${encodeURIComponent(month)}`;
+        window.open(url, '_blank');
     }
 
     onMounted(() => {
@@ -521,5 +493,42 @@
 
 </script>
 <style scoped>
-    
+    /* Container responsive pour scroll horizontal si petit écran */
+.table-responsive {
+    overflow-x: auto;
+}
+
+/* Empêche le texte de se casser et ajoute "..." si trop long */
+table.min-w-full th,
+table.min-w-full td {
+    white-space: nowrap;       /* pas de retour à la ligne */
+    overflow: hidden;          /* masque le texte qui dépasse */
+    text-overflow: ellipsis;   /* "..." si texte trop long */
+    padding: 0.5rem 1rem;      /* espace horizontal */
+}
+
+/* Hauteur fixe pour alignement uniforme */
+table.min-w-full td {
+    height: 50px;
+}
+
+/* Optionnel : largeur minimale pour certaines colonnes */
+table.min-w-full th,
+table.min-w-full td {
+    min-width: 100px; /* ajuste selon le contenu */
+}
+
+/* Style des entêtes */
+table.min-w-full thead th {
+    font-weight: bold;
+    color: #374151; /* text-gray-700 */
+}
+
+/* Ligne alternée */
+table.min-w-full tbody tr:nth-child(even) {
+    background-color: #f9fafb; /* bg-gray-50 */
+}
+table.min-w-full tbody tr:nth-child(odd) {
+    background-color: #ffffff; /* bg-white */
+}
 </style>

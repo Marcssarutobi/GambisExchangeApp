@@ -248,19 +248,30 @@
             }
         },
         {
-            title:'Balance Before',
-            data:'balance_before',
+            title: 'Balance Before',
+            data: 'balance_before',
             render: (data, type, row) => {
                 if (!row.balance_before) return "";
-                return `${Number(row.balance_before).toLocaleString("fr-FR")} ${row.account?.currency?.code}`;
+                const value = Number(row.balance_before).toLocaleString("fr-FR");
+                const currency = row.account?.currency?.code ?? '';
+                // Si le montant est négatif, mettre en rouge
+                if (row.balance_before < 0) {
+                    return `<span style="color:red;font-weight:bold">${value} ${currency}</span>`;
+                }
+                return `${value} ${currency}`;
             }
         },
         {
-            title:'Balance After',
-            data:'balance_after',
+            title: 'Balance After',
+            data: 'balance_after',
             render: (data, type, row) => {
                 if (!row.balance_after) return "";
-                return `${Number(row.balance_after).toLocaleString("fr-FR")} ${row.account?.currency?.code}`;
+                const value = Number(row.balance_after).toLocaleString("fr-FR");
+                const currency = row.account?.currency?.code ?? '';
+                if (row.balance_after < 0) {
+                    return `<span style="color:red;font-weight:bold">${value} ${currency}</span>`;
+                }
+                return `${value} ${currency}`;
             }
         },
         {

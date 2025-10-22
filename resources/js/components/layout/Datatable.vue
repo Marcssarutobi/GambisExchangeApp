@@ -184,4 +184,41 @@
         height: 50px !important;
         padding: 0 10px;
     }
+    /* Empêche les retours à la ligne dans toutes les cellules du tableau */
+.dataTable td,
+.dataTable th {
+    white-space: nowrap !important;
+    overflow: hidden;        /* coupe le texte qui dépasse */
+    text-overflow: ellipsis; /* ajoute "..." si le texte est trop long */
+    padding: 0 12px !important;
+}
+
+/* Fixe une hauteur pour les cellules */
+.dataTable td {
+    height: 50px !important;
+}
+
+/* Pour que les entêtes aient le même style */
+.dataTable thead th {
+    height: 50px !important;
+    padding: 0 12px !important;
+}
+
+/* Optionnel : forcer largeur minimale des colonnes pour éviter qu'elles se collent */
+.dataTable th,
+.dataTable td {
+    min-width: 80px; /* adapte selon le contenu */
+}
+
+/* Pagination et info sur la même ligne */
+.dt-paging nav .pagination{
+    display: flex !important;
+    align-items: center;
+    gap: 30px;
+}
+
+/* Container responsive pour scroll horizontal si trop petit */
+.table-responsive {
+    overflow-x: auto;
+}
 </style>
