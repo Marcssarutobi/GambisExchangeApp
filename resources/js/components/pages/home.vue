@@ -162,7 +162,7 @@
                                     <span class="text-sm text-default-600">{{ formatDate(movement.created_at) }}</span>
                                 </td>
                                 <td class="px-4 py-2">
-                                    <h5 class="text-base font-normal">{{ movement.amount }} {{ movement.currency?.code }}</h5>
+                                    <h5 class="text-base font-normal">{{ Number(movement.amount).toLocaleString('fr-FR') }} {{ movement.currency?.code }}</h5>
                                 </td>
                                 <td class="px-4 py-2">
                                     <h5 class="text-lg font-normal">{{ movement.rate ? movement.rate : '0' }} {{ movement.account?.currency?.code }}</h5>
