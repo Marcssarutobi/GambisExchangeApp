@@ -36,11 +36,11 @@ class HistoryExport implements FromCollection, WithHeadings, WithStyles, ShouldA
             return [
                 'Description'      => $data->performed_by ?? '-',
                 'Type'             => ucfirst($data->type),
-                'Montant'          => $data->amount . ' ' . ($data->currency->code ?? ''),
+                'Montant'          => number_format($data->amount, 0, ',', ' ') . ' ' . ($data->currency->code ?? ''),
                 'Taux'             => $data->rate ?? '-',
-                'Montant final'    => $data->final_amount . ' ' . ($data->account->currency->code ?? ''),
-                'Solde avant'      => $data->balance_before . ' ' . ($data->account->currency->code ?? ''),
-                'Solde après'      => $data->balance_after . ' ' . ($data->account->currency->code ?? ''),
+                'Montant final'    => number_format($data->final_amount, 0, ',', ' ') . ' ' . ($data->account->currency->code ?? ''),
+                'Solde avant'      => number_format($data->balance_before, 0, ',', ' ') . ' ' . ($data->account->currency->code ?? ''),
+                'Solde après'      => number_format($data->balance_after, 0, ',', ' ') . ' ' . ($data->account->currency->code ?? ''),
                 'Date de création' => Carbon::parse($data->created_at)->format('d/m/Y H:i'),
             ];
         });
