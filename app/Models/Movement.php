@@ -14,6 +14,7 @@ class Movement extends Model
         'type',
         'amount',
         'rate',
+        'rate_direction',
         'final_amount',
         'currency_id',
         'performed_by',

@@ -48,27 +48,36 @@
                         <RouterLink
                             class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
                             exact-active-class="active" to="/exchange">
-                            <i class="fa-regular fa-arrow-right-arrow-left size-5"></i>
+                            <i class="fa-solid fa-arrow-right-arrow-left size-5"></i>
                             Exchanges
+                        </RouterLink>
+                    </li>
+
+                    <li class="menu-item">
+                        <RouterLink
+                            class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
+                            exact-active-class="active" to="/cash-register">
+                            <i class="fa-solid fa-vault size-5"></i>
+                            Caisse générale
                         </RouterLink>
                     </li>
 
                     <li class="px-3 py-2 text-xs uppercase font-medium text-default-500">Currency settings</li>
 
-                    <!-- <li class="menu-item">
+                    <li class="menu-item">
                         <RouterLink to="/currencypurchases"
                             class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
                             exact-active-class="active">
-                            <i class="i-lucide-clipboard size-5"></i>
-                            <span class="menu-text"> Currency Purchases </span>
+                            <i class="fa-solid fa-money-bill-transfer size-5"></i>
+                            <span class="menu-text"> Achat / Vente devises </span>
                         </RouterLink>
-                    </li> -->
+                    </li>
 
                     <li class="menu-item">
                         <RouterLink to="/currency"
                             class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
                             exact-active-class="active">
-                            <i class="i-lucide-clipboard size-5"></i>
+                            <i class="fa-solid fa-coins size-5"></i>
                             <span class="menu-text"> Currency </span>
                         </RouterLink>
                     </li>
@@ -76,7 +85,7 @@
                         <RouterLink to="/rate"
                             class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
                             exact-active-class="active">
-                            <i class="i-lucide-clipboard size-5"></i>
+                            <i class="fa-solid fa-chart-line size-5"></i>
                             <span class="menu-text"> Exchanges Rate </span>
                         </RouterLink>
                     </li>
@@ -87,7 +96,7 @@
                         <RouterLink to="/user"
                             class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
                             exact-active-class="active">
-                            <i class="i-lucide-palette size-5"></i>
+                            <i class="fa-solid fa-users-gear size-5"></i>
                             <span class="menu-text"> Users </span>
                         </RouterLink>
                     </li>

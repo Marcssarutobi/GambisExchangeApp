@@ -148,9 +148,17 @@
 <script setup>
 
     import { onMounted, ref } from 'vue';
+    import { useRouter } from 'vue-router';
     import DataTable from '../layout/Datatable.vue';
     import { deleteData, getData, getSingleData, postData, putData } from '../plugins/api';
     import Swal from 'sweetalert2';
+
+    const router = useRouter();
+
+    // Point 1 : voir les comptes d'un client depuis sa fiche
+    function ViewClientAccounts(id) {
+        router.push(`/customer/${id}/accounts`);
+    }
 
     const allClients = ref([]);
     const data = ref({
@@ -225,8 +233,9 @@
             searchable: false,
             render: function (data, type, row) {
                 return `
-                    <button class="btn bg-primary text-white me-3" onClick="ShowClient(${row.id})"><i class="fas fa-edit"></i> Edit</button>
-                    <button class="btn bg-danger text-white" onClick="DeleteClient(${row.id})"><i class="fas fa-trash"></i> Delete</button>
+                    <button class="btn bg-emerald-50 text-emerald-700 hover:bg-emerald-100 me-3 rounded-md" onClick="ViewClientAccounts(${row.id})" title="Voir les comptes de ce client"><i class="fa-solid fa-wallet"></i> Comptes</button>
+                    <button class="btn bg-primary text-white me-3 rounded-md shadow-sm" onClick="ShowClient(${row.id})"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="btn bg-danger text-white rounded-md shadow-sm" onClick="DeleteClient(${row.id})"><i class="fas fa-trash"></i> Delete</button>
                 `;
             }
         }
@@ -340,6 +349,7 @@
         AllCustomer();
         window.ShowClient = ShowClient
         window.DeleteClient = DeleteClient
+        window.ViewClientAccounts = ViewClientAccounts
     });
 
 </script>

@@ -3,14 +3,14 @@
         
         <!-- Page Title Start -->
         <div class="flex items-center md:justify-between flex-wrap gap-2 mb-5">
-            <h4 class="text-default-900 text-lg font-semibold">Currency Purchases</h4>
+            <h4 class="text-default-900 text-lg font-semibold">Achat / Vente de devises</h4>
 
             <div class="md:flex hidden items-center gap-3 text-sm font-semibold">
                 <RouterLink to="/" class="text-sm font-medium text-default-700">Home</RouterLink>
 
                 <i class="i-tabler-chevron-right text-lg flex-shrink-0 text-default-500 rtl:rotate-180"></i>
 
-                <RouterLink to="/customer" class="text-sm font-medium text-default-700" aria-current="page">Currency Purchases</RouterLink>
+                <RouterLink to="/currencypurchases" class="text-sm font-medium text-default-700" aria-current="page">Achat / Vente de devises</RouterLink>
             </div>
         </div>
         <!-- Page Title End -->
@@ -62,7 +62,7 @@
         <div class="col-lg-12 mt-8">
             <div class="card overflow-hidden p-3">
                 <div class="card-header text-end">
-                    <button type="button" @click="showModal = true" class="btn btn-lg bg-primary text-white">Add Purchases</button>
+                    <button type="button" @click="showModal = true" class="btn btn-lg bg-primary text-white rounded-md shadow-sm"><i class="fa-solid fa-money-bill-transfer me-1"></i> Nouvel achat / vente</button>
                 </div>
                 <div class="overflow-x-auto">
                     <div class="min-w-full inline-block align-middle">
@@ -83,18 +83,24 @@
                 <form class="mt-3 space-y-4" @submit.prevent="AddCurrencyPurchase" >
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div class="">
-                            <label class="block text-sm font-medium text-gray-700">Supplier Name</label>
+                            <label class="block text-sm font-medium text-gray-700">Type d'opération</label>
+                            <select v-model="data.type" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                                <option value="achat">Achat de devise</option>
+                                <option value="vente">Vente de devise</option>
+                            </select>
+                        </div>
+                        <div class="">
+                            <label class="block text-sm font-medium text-gray-700">{{ data.type === 'vente' ? 'Acheteur (optionnel)' : 'Supplier Name' }}</label>
                             <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.supplier}" placeholder="Entrez le nom du fournisseur" v-model="data.supplier">
                             <span v-if="isEmpty.supplier" class="text-danger">{{ msgInput.supplier }}</span>
                         </div>
-    
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Amount Purchased</label>
                             <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.amount_purchased}" placeholder="Entrez le montant acheté" v-model="data.amount_purchased">
                             <span v-if="isEmpty.amount_purchased" class="text-danger">{{ msgInput.amount_purchased }}</span>
                         </div>
-                    </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Currency</label>
                             <select name="currency_id" id="currency_id" v-model="data.currency_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
@@ -103,11 +109,23 @@
                             </select>
                             <span v-if="isEmpty.currency_id" class="text-danger">{{ msgInput.currency_id }}</span>
                         </div>
-    
+                    </div>
+                    <!--
+                        Point 7 : le taux reste saisi manuellement (il varie), mais le sens du calcul
+                        doit être explicite - même correctif que pour les échanges (point 5).
+                    -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Rate Purchase</label>
                             <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.rate}" placeholder="Entrez le taux" v-model="data.rate">
                             <span v-if="isEmpty.rate" class="text-danger">{{ msgInput.rate }}</span>
+                        </div>
+                        <div class="">
+                            <label class="block text-sm font-medium text-gray-700">Sens du taux</label>
+                            <select v-model="data.rate_direction" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                                <option value="multiply">Multiplier (montant × taux)</option>
+                                <option value="divide">Diviser (montant ÷ taux)</option>
+                            </select>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -230,9 +248,11 @@
 
     const data = ref({
         currency_id:'',
+        type:'achat',
         supplier:'',
         amount_purchased:'',
         rate:'',
+        rate_direction:'multiply',
         payment_currency_id:'',
         total_paid:'',
     })
@@ -262,6 +282,15 @@
     }
 
     const columns = [
+        {
+            title: 'Type',
+            data: 'type',
+            render: (data, type, row) => {
+                return row.type === 'vente'
+                    ? `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-700">Vente</span>`
+                    : `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Achat</span>`;
+            }
+        },
         {
             title: 'Supplier Name',
             data: null,
@@ -322,6 +351,8 @@
 
     async function AddCurrencyPurchase() {
         for (const field in data.value) {
+            if (field === 'rate_direction') continue;
+            if (field === 'supplier' && data.value.type === 'vente') continue; // optionnel pour une vente
             isEmpty.value[field] = !data.value[field]
             msgInput.value[field] = `Please enter ${field.replace('_', ' ')}`;
         }
@@ -341,9 +372,11 @@
                 AllCurencyPurchases()
                 data.value = {
                     currency_id:'',
+                    type:'achat',
                     supplier:'',
                     amount_purchased:'',
                     rate:'',
+                    rate_direction:'multiply',
                     payment_currency_id:'',
                     total_paid:'',
                 }
@@ -448,11 +481,12 @@
     })
 
     watch(
-        [() => data.value.amount_purchased, () => data.value.rate],
-        ([amount_purchased, rate]) => {
+        [() => data.value.amount_purchased, () => data.value.rate, () => data.value.rate_direction],
+        ([amount_purchased, rate, direction]) => {
             if (amount_purchased && rate) {
-                // Calcul automatique du montant final
-                data.value.total_paid = (parseFloat(amount_purchased) * parseFloat(rate)).toFixed(2)
+                const a = parseFloat(amount_purchased)
+                const r = parseFloat(rate)
+                data.value.total_paid = direction === 'divide' ? (a / r).toFixed(2) : (a * r).toFixed(2)
             } else {
                 data.value.total_paid = amount_purchased
             }

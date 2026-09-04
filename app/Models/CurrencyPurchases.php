@@ -12,9 +12,11 @@ class CurrencyPurchases extends Model
 
     protected $fillable = [
         'currency_id',
+        'type',
         'supplier',
         'amount_purchased',
         'rate',
+        'rate_direction',
         'payment_currency_id',
         'total_paid',
     ];

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\CashRegisterController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CurrencyController;
@@ -28,7 +29,9 @@ Route::post('/login',[UserController::class, 'login']);
 Route::post('/sendcode', [UserController::class, 'sendResetCode']);
 //VerifyCode
 Route::post('/verifycode', [UserController::class, 'verifyResetCode']);
-Route::get('/export-history/{month}', [MovementController::class, 'exportHistory']);
+// Point 6 : export avec filtre de dates. ?month=YYYY-MM (rétrocompatible) ou ?from=...&to=...
+// Le paramètre {month} en route est retiré au profit de query params (plusieurs filtres possibles).
+Route::get('/export-history', [MovementController::class, 'exportHistory']);
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -54,6 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //Client
     Route::get('/clients', [ClientController::class, 'index']);
     Route::get('/clients/{id}', [ClientController::class, 'show']);
+    Route::get('/clients/{id}/accounts', [ClientController::class, 'accounts']); // Point 1
     Route::post('/addclients', [ClientController::class, 'store']);
     Route::put('/updateclients/{id}', [ClientController::class, 'update']);
     Route::delete('/deleteclients/{id}', [ClientController::class, 'destroy']);
@@ -90,6 +94,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/gain', [CurrencyPurchasesController::class, 'expectedGains']);
 
+    //Cash register (Point 3 : caisse générale)
+    Route::get('/cash-registers', [CashRegisterController::class, 'index']);
+    Route::get('/cash-registers/history', [CashRegisterController::class, 'history']);
+    Route::post('/cash-registers/adjust', [CashRegisterController::class, 'adjust']);
+
     //DashboardController
     Route::get('/total-balance', [DashboardController::class, 'totalBalance']);
     Route::get('/deposits-summary', [DashboardController::class, 'depositsSummary']);
@@ -99,5 +108,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/exchange-rates-donut', [DashboardController::class, 'exchangeRatesDonut']);
     Route::get('/last-clients', [DashboardController::class, 'lastClients']);
     Route::get('/last-movements', [DashboardController::class, 'lastMovements']);
+    Route::get('/cash-register-summary', [DashboardController::class, 'cashRegisterSummary']);
 
 });

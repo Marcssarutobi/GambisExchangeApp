@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Account;
 use App\Models\Movement;
+use App\Services\CashRegisterService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -24,12 +25,15 @@ class MovementController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'account_id'   => 'required|exists:accounts,id',
-            'type'         => 'required|in:deposit,withdraw',
-            'amount'       => 'required|numeric|min:0.01',
-            'rate'         => 'nullable|numeric|min:0.0001',
-            'currency_id'  => 'required|exists:currencies,id',
-            'performed_by' => 'nullable|string|max:255',
+            'account_id'     => 'required|exists:accounts,id',
+            'type'           => 'required|in:deposit,withdraw',
+            'amount'         => 'required|numeric|min:0.01',
+            'rate'           => 'nullable|numeric|min:0.0001',
+            // Point 5 : le taux reste saisi manuellement, mais le sens du calcul doit être
+            // explicite dès qu'une conversion est nécessaire (fin de la multiplication systématique).
+            'rate_direction' => 'nullable|in:multiply,divide',
+            'currency_id'    => 'required|exists:currencies,id',
+            'performed_by'   => 'nullable|string|max:255',
         ]);
 
         try {
@@ -40,15 +44,25 @@ class MovementController extends Controller
                 // ⚠️ lockForUpdate() évite les conflits de concurrence (2 opérations simultanées sur le même compte)
 
                 // 2️⃣ Calculer les montants
-                $amount = (float) $request->amount;
-                $rate   = $request->rate ? (float) $request->rate : null;
-                $finalAmount = $amount;
+                $amount        = (float) $request->amount;
+                $rate          = $request->rate ? (float) $request->rate : null;
+                $rateDirection = $request->rate_direction;
+                $finalAmount   = $amount;
 
                 if ($account->currency_id != $request->currency_id) {
                     if (!$rate) {
                         throw new \Exception("Taux de conversion requis pour cette opération");
                     }
-                    $finalAmount = $amount * $rate;
+                    if (!in_array($rateDirection, ['multiply', 'divide'], true)) {
+                        throw new \Exception("Sens du taux requis : multiplier ou diviser");
+                    }
+                    // Avant : $finalAmount = $amount * $rate; (toujours une multiplication -> bug
+                    // signalé sur le Naira). Désormais le sens est explicite, choisi par l'agent.
+                    $finalAmount = $rateDirection === 'multiply'
+                        ? $amount * $rate
+                        : $amount / $rate;
+                } else {
+                    $rateDirection = null; // pas de conversion, le sens n'a pas de raison d'être
                 }
 
                 // Sauvegarder le solde avant
@@ -58,6 +72,9 @@ class MovementController extends Controller
                 if ($request->type === 'deposit') {
                     $account->increment('balance', $finalAmount);
                 } elseif ($request->type === 'withdraw') {
+                    if ($balanceBefore < $finalAmount) {
+                        throw new \Exception("Solde insuffisant pour ce retrait");
+                    }
                     $account->decrement('balance', $finalAmount);
                 }
 
@@ -65,17 +82,31 @@ class MovementController extends Controller
                 $balanceAfter = $account->fresh()->balance;
 
                 // 4️⃣ Enregistrer le mouvement
-                return Movement::create([
+                $movement = Movement::create([
                     'account_id'     => $request->account_id,
                     'type'           => $request->type,
                     'amount'         => $amount,           // Montant saisi
                     'rate'           => $rate,             // Taux utilisé (si conversion)
+                    'rate_direction' => $rateDirection,    // multiply ou divide (point 5)
                     'final_amount'   => $finalAmount,      // Montant converti
                     'currency_id'    => $request->currency_id,  // Devise saisie
                     'performed_by'   => $request->performed_by, // Personne ayant effectué le mouvement
                     'balance_before' => $balanceBefore,    // 👈 Solde avant
                     'balance_after'  => $balanceAfter,     // 👈 Solde après
                 ]);
+
+                // 5️⃣ Caisse générale (point 3) : le client apporte/retire du cash physique
+                // dans la devise saisie (currency_id), pour le montant saisi (amount).
+                CashRegisterService::record(
+                    $request->currency_id,
+                    $request->type === 'deposit' ? 'client_deposit' : 'client_withdraw',
+                    $request->type === 'deposit' ? 'in' : 'out',
+                    $amount,
+                    $movement,
+                    'Mouvement #' . $movement->id . ' - compte ' . $account->code
+                );
+
+                return $movement;
             });
 
             return response()->json([
@@ -131,37 +162,76 @@ class MovementController extends Controller
         ]);
     }
 
-    public function exportHistory($month)
+    /**
+     * Point 6 : export avec filtre de dates ("du ... au ..."), en plus du filtre par mois
+     * conservé pour compatibilité. Filtre optionnel par compte.
+     *
+     * Query params : ?month=2026-01 (rétrocompatible)
+     *             ou ?from=2026-01-01&to=2026-01-31
+     *             + ?account_id=12 (optionnel, sur les deux formes ci-dessus)
+     */
+    public function exportHistory(Request $request)
     {
-        // Récupérer le premier mouvement du mois pour obtenir les infos du compte/client
-        $firstMovement = Movement::with(['account.client'])
-            ->whereMonth('created_at', Carbon::parse($month)->month)
-            ->whereYear('created_at', Carbon::parse($month)->year)
-            ->first();
+        $request->validate([
+            'month'      => 'nullable|string',
+            'from'       => 'nullable|date',
+            'to'         => 'nullable|date',
+            'account_id' => 'nullable|exists:accounts,id',
+        ]);
+
+        $query = Movement::with(['account.client']);
+
+        if ($request->filled('account_id')) {
+            $query->where('account_id', $request->account_id);
+        }
+
+        if ($request->filled('from') || $request->filled('to')) {
+            if ($request->filled('from')) {
+                $query->where('created_at', '>=', Carbon::parse($request->from)->startOfDay());
+            }
+            if ($request->filled('to')) {
+                $query->where('created_at', '<=', Carbon::parse($request->to)->endOfDay());
+            }
+            $from = $request->from ?? '...';
+            $to = $request->to ?? '...';
+            $periodLabel = "du {$from} au {$to}";
+            $fileLabel = "{$from}_au_{$to}";
+        } elseif ($request->filled('month')) {
+            $query->whereMonth('created_at', Carbon::parse($request->month)->month)
+                  ->whereYear('created_at', Carbon::parse($request->month)->year);
+            $periodLabel = Carbon::parse($request->month)->translatedFormat('F Y');
+            $fileLabel = $request->month;
+        } else {
+            $periodLabel = 'complet';
+            $fileLabel = 'complet';
+        }
+
+        $firstMovement = (clone $query)->orderBy('created_at')->first();
 
         if (!$firstMovement) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Aucun historique trouvé pour ce mois.',
+                'message' => 'Aucun historique trouvé pour cette période.',
             ], 404);
         }
 
-        // Nom du client
+        // Nom du client (pour le titre/nom de fichier)
         $accountName = trim(($firstMovement->account->client->nom ?? '') . ' ' . ($firstMovement->account->client->prenom ?? '')) ?: 'Inconnu';
-        $fileName = "Historique_{$month}_{$accountName}.xlsx";
+        $fileName = "Historique_{$fileLabel}_{$accountName}.xlsx";
 
         // Export
-        return Excel::download(new HistoryExport($month, $accountName), $fileName);
+        return Excel::download(new HistoryExport($query, $periodLabel, $accountName), $fileName);
     }
 
     public function update(Request $request, $id)
     {
         $request->validate([
-            'type'         => 'nullable|in:deposit,withdraw',
-            'amount'       => 'nullable|numeric|min:0.01',
-            'rate'         => 'nullable|numeric|min:0.0001',
-            'currency_id'  => 'nullable|exists:currencies,id',
-            'performed_by' => 'nullable|string|max:255',
+            'type'           => 'nullable|in:deposit,withdraw',
+            'amount'         => 'nullable|numeric|min:0.01',
+            'rate'           => 'nullable|numeric|min:0.0001',
+            'rate_direction' => 'nullable|in:multiply,divide',
+            'currency_id'    => 'nullable|exists:currencies,id',
+            'performed_by'   => 'nullable|string|max:255',
         ]);
 
         try {
@@ -180,6 +250,10 @@ class MovementController extends Controller
                 // 🔒 Empêcher les opérations simultanées
                 $account->lockForUpdate();
 
+                $originalCurrencyId = $movement->currency_id;
+                $originalAmount     = (float) $movement->amount;
+                $originalType       = $movement->type;
+
                 // 1️⃣ Restaurer le solde du compte comme s’il n’y avait pas eu ce mouvement
                 if ($movement->type === 'deposit') {
                     $account->decrement('balance', $movement->final_amount);
@@ -191,6 +265,7 @@ class MovementController extends Controller
                 $newType       = $request->type ?? $movement->type;
                 $newAmount     = $request->amount ? (float) $request->amount : $movement->amount;
                 $newRate       = $request->rate ? (float) $request->rate : $movement->rate;
+                $newDirection  = $request->rate_direction ?? $movement->rate_direction;
                 $newCurrencyId = $request->currency_id ?? $movement->currency_id;
 
                 $finalAmount = $newAmount;
@@ -199,7 +274,15 @@ class MovementController extends Controller
                     if (!$newRate) {
                         throw new \Exception("Taux de conversion requis pour cette opération");
                     }
-                    $finalAmount = $newAmount * $newRate;
+                    if (!in_array($newDirection, ['multiply', 'divide'], true)) {
+                        throw new \Exception("Sens du taux requis : multiplier ou diviser");
+                    }
+                    // Point 5 : sens du calcul explicite, plus de multiplication systématique.
+                    $finalAmount = $newDirection === 'multiply'
+                        ? $newAmount * $newRate
+                        : $newAmount / $newRate;
+                } else {
+                    $newDirection = null;
                 }
 
                 // 3️⃣ Vérifier le solde avant application
@@ -223,12 +306,32 @@ class MovementController extends Controller
                     'type'           => $newType,
                     'amount'         => $newAmount,
                     'rate'           => $newRate,
+                    'rate_direction' => $newDirection,
                     'final_amount'   => $finalAmount,
                     'currency_id'    => $newCurrencyId,
                     'performed_by'   => $request->performed_by ?? $movement->performed_by,
                     'balance_before' => $balanceBefore,
                     'balance_after'  => $balanceAfter,
                 ]);
+
+                // 6️⃣ Caisse générale : annuler l'ancien mouvement de caisse et enregistrer le nouveau,
+                // au cas où le montant, la devise saisie ou le type auraient changé.
+                CashRegisterService::record(
+                    $originalCurrencyId,
+                    $originalType === 'deposit' ? 'client_withdraw' : 'client_deposit', // inverse pour annuler
+                    $originalType === 'deposit' ? 'out' : 'in',
+                    $originalAmount,
+                    $movement,
+                    'Annulation avant modification du mouvement #' . $movement->id
+                );
+                CashRegisterService::record(
+                    $newCurrencyId,
+                    $newType === 'deposit' ? 'client_deposit' : 'client_withdraw',
+                    $newType === 'deposit' ? 'in' : 'out',
+                    $newAmount,
+                    $movement,
+                    'Modification du mouvement #' . $movement->id
+                );
 
                 return $movement;
             });
@@ -274,6 +377,16 @@ class MovementController extends Controller
                     // Si c'était un retrait, on réajoute ce qui avait été retiré
                     $account->increment('balance', $movement->final_amount);
                 }
+
+                // 1️⃣bis Annuler l'effet sur la caisse générale (point 3)
+                CashRegisterService::record(
+                    $movement->currency_id,
+                    $movement->type === 'deposit' ? 'client_withdraw' : 'client_deposit',
+                    $movement->type === 'deposit' ? 'out' : 'in',
+                    (float) $movement->amount,
+                    $movement,
+                    'Annulation (suppression) du mouvement #' . $movement->id
+                );
 
                 // 2️⃣ Supprimer le mouvement
                 $movement->delete();

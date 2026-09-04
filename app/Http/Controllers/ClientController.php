@@ -7,6 +7,30 @@ use Illuminate\Http\Request;
 
 class ClientController extends Controller
 {
+    /**
+     * Point 1 : voir les comptes d'un client depuis sa fiche.
+     */
+    public function accounts($id)
+    {
+        $client = Client::find($id);
+        if (!$client) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Client not found'
+            ], 404);
+        }
+
+        $accounts = $client->accounts()->with('currency')->orderBy('id', 'desc')->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'client' => $client,
+                'accounts' => $accounts,
+            ],
+        ]);
+    }
+
     public function index(){
         $data = Client::orderBy('id','desc')->get();
         return response()->json([

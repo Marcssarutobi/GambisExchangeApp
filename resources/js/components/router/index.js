@@ -18,9 +18,19 @@ const routes = [
                 meta: { role: ['admin', 'caissier'] } // Accès pour les rôles 'admin' et 'user'
             },
             {
+                path: 'customer/:id/accounts',
+                component: () => import('../pages/ClientAccounts.vue'),
+                meta: { role: ['admin', 'caissier'] } // Point 1 : comptes d'un client
+            },
+            {
                 path: 'account',
                 component: () => import('../pages/accounts.vue'),
                 meta: { role: ['admin', 'caissier'] }
+            },
+            {
+                path: 'cash-register',
+                component: () => import('../pages/CashRegister.vue'),
+                meta: { role: ['admin', 'caissier'] } // Point 3 : caisse générale
             },
             {
                 path: 'exchange',

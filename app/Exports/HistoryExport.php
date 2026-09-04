@@ -15,19 +15,25 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 class HistoryExport implements FromCollection, WithHeadings, WithStyles, ShouldAutoSize, WithTitle, WithCustomStartCell
 {
-    protected $month;
+    protected $query;
+    protected $periodLabel;
     protected $accountName;
 
-    public function __construct($month, $accountName)
+    /**
+     * @param \Illuminate\Database\Eloquent\Builder $query Requête déjà filtrée (mois, ou plage de dates + compte)
+     * @param string $periodLabel Libellé de la période affiché dans le titre du fichier
+     * @param string $accountName
+     */
+    public function __construct($query, $periodLabel, $accountName)
     {
-        $this->month = $month;
+        $this->query = $query;
+        $this->periodLabel = $periodLabel;
         $this->accountName = $accountName;
     }
 
     public function collection()
     {
-        $movements = Movement::whereMonth('created_at', Carbon::parse($this->month)->month)
-            ->whereYear('created_at', Carbon::parse($this->month)->year)
+        $movements = (clone $this->query)
             ->with(['account.client', 'account.currency', 'currency'])
             ->orderBy('created_at', 'asc')
             ->get();
@@ -69,7 +75,7 @@ class HistoryExport implements FromCollection, WithHeadings, WithStyles, ShouldA
     {
         // 🔹 Fusionner le titre
         $sheet->mergeCells('A1:H1');
-        $sheet->setCellValue('A1', 'Historique du mois de ' . Carbon::parse($this->month)->translatedFormat('F Y') . ' de ' . $this->accountName);
+        $sheet->setCellValue('A1', 'Historique ' . $this->periodLabel . ' de ' . $this->accountName);
 
         // 🔹 Style du titre
         $sheet->getStyle('A1')->applyFromArray([

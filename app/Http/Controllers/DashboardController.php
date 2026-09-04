@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Account;
+use App\Models\CashRegister;
 use App\Models\Client;
 use App\Models\Movement;
 use Illuminate\Http\Request;
@@ -10,6 +11,34 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    /**
+     * Point 3 : aperçu de la caisse générale sur le tableau de bord (solde par devise + entrées du jour).
+     */
+    public function cashRegisterSummary()
+    {
+        $registers = CashRegister::with('currency')->get();
+
+        $todayMovements = DB::table('cash_movements')
+            ->join('cash_registers', 'cash_movements.cash_register_id', '=', 'cash_registers.id')
+            ->join('currencies', 'cash_registers.currency_id', '=', 'currencies.id')
+            ->whereDate('cash_movements.created_at', now()->toDateString())
+            ->select(
+                'currencies.code as currency',
+                DB::raw("SUM(CASE WHEN cash_movements.type IN ('client_deposit','purchase_in','sale_in') THEN cash_movements.amount ELSE 0 END) as total_in"),
+                DB::raw("SUM(CASE WHEN cash_movements.type IN ('client_withdraw','purchase_out','sale_out') THEN cash_movements.amount ELSE 0 END) as total_out")
+            )
+            ->groupBy('currencies.code')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'balances' => $registers,
+                'today' => $todayMovements,
+            ],
+        ]);
+    }
+
 
     public function totalBalance()
     {

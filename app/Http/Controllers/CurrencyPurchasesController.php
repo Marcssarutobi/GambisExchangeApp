@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Currency;
 use App\Models\CurrencyPurchases;
 use App\Models\Movement;
+use App\Services\CashRegisterService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CurrencyPurchasesController extends Controller
 {
@@ -20,16 +22,67 @@ class CurrencyPurchasesController extends Controller
 
     public function store(Request $request)
     {
+        // Points 4 & 7 : achat ET vente de devises, avec impact automatique sur la caisse
+        // générale, et le même correctif de sens de calcul que pour les mouvements (point 5).
         $validated = $request->validate([
             'currency_id' => 'required|exists:currencies,id',
-            'supplier' => 'required|string|max:255',
+            'type' => 'required|in:achat,vente',
+            // "supplier" = fournisseur pour un achat, ou nom de l'acheteur pour une vente.
+            'supplier' => 'nullable|string|max:255',
             'amount_purchased' => 'required|numeric|min:0',
             'rate' => 'required|numeric|min:0',
+            'rate_direction' => 'required|in:multiply,divide',
             'payment_currency_id' => 'nullable|exists:currencies,id',
             'total_paid' => 'required|numeric|min:0',
         ]);
 
-        $purchase = CurrencyPurchases::create($validated);
+        $validated['supplier'] = $validated['supplier'] ?? '';
+
+        $purchase = DB::transaction(function () use ($validated) {
+            $purchase = CurrencyPurchases::create($validated);
+
+            if (!empty($validated['payment_currency_id'])) {
+                if ($validated['type'] === 'achat') {
+                    // Achat : sortie de caisse dans la devise de paiement, entrée dans la devise achetée
+                    CashRegisterService::record(
+                        $validated['payment_currency_id'],
+                        'purchase_out',
+                        'out',
+                        (float) $validated['total_paid'],
+                        $purchase,
+                        'Achat #' . $purchase->id . ' auprès de ' . ($validated['supplier'] ?: 'fournisseur non renseigné')
+                    );
+                    CashRegisterService::record(
+                        $validated['currency_id'],
+                        'purchase_in',
+                        'in',
+                        (float) $validated['amount_purchased'],
+                        $purchase,
+                        'Achat #' . $purchase->id
+                    );
+                } else {
+                    // Vente : entrée de caisse dans la devise de paiement reçue, sortie de la devise vendue
+                    CashRegisterService::record(
+                        $validated['payment_currency_id'],
+                        'sale_in',
+                        'in',
+                        (float) $validated['total_paid'],
+                        $purchase,
+                        'Vente #' . $purchase->id . ($validated['supplier'] ? ' à ' . $validated['supplier'] : '')
+                    );
+                    CashRegisterService::record(
+                        $validated['currency_id'],
+                        'sale_out',
+                        'out',
+                        (float) $validated['amount_purchased'],
+                        $purchase,
+                        'Vente #' . $purchase->id
+                    );
+                }
+            }
+
+            return $purchase;
+        });
 
         return response()->json([
             'status' => 'success',
@@ -84,7 +137,20 @@ class CurrencyPurchasesController extends Controller
             ], 404);
         }
 
-        $purchase->delete();
+        DB::transaction(function () use ($purchase) {
+            // Annuler l'impact sur la caisse générale avant suppression (point 3/4/7)
+            if ($purchase->payment_currency_id) {
+                if ($purchase->type === 'achat') {
+                    CashRegisterService::record($purchase->payment_currency_id, 'purchase_in', 'in', (float) $purchase->total_paid, $purchase, 'Annulation (suppression) de l\'achat #' . $purchase->id);
+                    CashRegisterService::record($purchase->currency_id, 'purchase_out', 'out', (float) $purchase->amount_purchased, $purchase, 'Annulation (suppression) de l\'achat #' . $purchase->id);
+                } else {
+                    CashRegisterService::record($purchase->payment_currency_id, 'sale_out', 'out', (float) $purchase->total_paid, $purchase, 'Annulation (suppression) de la vente #' . $purchase->id);
+                    CashRegisterService::record($purchase->currency_id, 'sale_in', 'in', (float) $purchase->amount_purchased, $purchase, 'Annulation (suppression) de la vente #' . $purchase->id);
+                }
+            }
+
+            $purchase->delete();
+        });
 
         return response()->json([
             'status' => 'success',

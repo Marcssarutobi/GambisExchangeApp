@@ -18,7 +18,7 @@
         <div class="col-lg-12 mt-8">
             <div class="card overflow-hidden p-3">
                 <div class="card-header text-end">
-                    <button type="button" @click="showModal = true" class="btn btn-lg bg-primary text-white">Add Exchanges</button>
+                    <button type="button" @click="showModal = true" class="btn btn-lg bg-primary text-white rounded-md shadow-sm"><i class="fa-solid fa-arrow-right-arrow-left me-1"></i> Add Exchanges</button>
                 </div>
                 <div class="overflow-x-auto">
                     <div class="min-w-full inline-block align-middle">
@@ -87,6 +87,23 @@
                         </div>
                     </div>
 
+                    <!--
+                        Point 5 : correctif du bug de calcul. Le taux reste saisi manuellement
+                        (il varie), mais l'agent choisit désormais explicitement le sens à
+                        appliquer, au lieu d'une multiplication systématique (bug signalé sur le Naira).
+                        Rangée pleine largeur, affichée uniquement si une conversion est nécessaire,
+                        pour ne jamais laisser une colonne vide à côté.
+                    -->
+                    <div class="grid grid-cols-1 gap-4" v-if="needsConversion">
+                        <div class="">
+                            <label class="block text-sm font-medium text-gray-700">Sens du taux</label>
+                            <select v-model="data.rate_direction" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                                <option value="multiply">Multiplier (montant × taux)</option>
+                                <option value="divide">Diviser (montant ÷ taux)</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="">
                         <label class="block text-sm font-medium text-gray-700">Performed By</label>
                         <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.performed_by}" placeholder="Enter Performed By" v-model="data.performed_by">
@@ -116,9 +133,12 @@
 <script setup>
 
     import { computed, onMounted, ref, render, watch } from 'vue';
+    import { useRoute } from 'vue-router';
     import DataTable from '../layout/Datatable.vue';
     import { deleteData, getData, getSingleData, postData, putData } from '../plugins/api';
     import Swal from 'sweetalert2';
+
+    const route = useRoute();
 
     const allMovements = ref([]);
     const allAccount = ref([]);
@@ -129,9 +149,33 @@
         type: '',
         amount: '',
         rate: '',
+        rate_direction: 'multiply',
         final_amount: '',
         currency_id: '',
         performed_by:''
+    });
+
+    // Point 2 : bouton Créditer/Débiter d'un compte -> pré-remplissage du formulaire
+    // via les query params (account_id, type) au lieu de rechercher le compte dans la liste.
+    function prefillFromQuery() {
+        if (route.query.account_id) {
+            data.value.account_id = Number(route.query.account_id);
+            if (route.query.type === 'deposit' || route.query.type === 'withdraw') {
+                data.value.type = route.query.type;
+            }
+            const account = allAccount.value.find(a => a.id === data.value.account_id);
+            if (account) {
+                data.value.currency_id = account.currency_id;
+            }
+            showModal.value = true;
+        }
+    }
+
+    // Point 5 : une conversion (et donc un sens à préciser) n'est nécessaire que si la devise
+    // saisie diffère de la devise du compte sélectionné.
+    const needsConversion = computed(() => {
+        const account = allAccount.value.find(a => a.id === data.value.account_id);
+        return !!(account && data.value.currency_id && account.currency_id !== data.value.currency_id);
     });
     const isEmpty = ref({})
     const msgInput = ref({})
@@ -297,7 +341,7 @@
     async function AddMovementFunction() {
         
         for (const field in data.value) {
-            if (field === 'rate') continue;
+            if (field === 'rate' || field === 'rate_direction') continue;
             isEmpty.value[field] = !data.value[field]
             msgInput.value[field] = `Please enter ${field.replace('_', ' ')}`;
         }
@@ -320,8 +364,10 @@
                         type: '',
                         amount: '',
                         rate: '',
+                        rate_direction: 'multiply',
                         final_amount: '',
-                        currency_id: ''
+                        currency_id: '',
+                        performed_by: ''
                     }
                     AllMovements();
                 }
@@ -341,19 +387,25 @@
 
     }
 
-    onMounted(() => {
+    onMounted(async () => {
         AllMovements();
-        AllAccount()
+        await AllAccount()
         AllCurrencyFunction()
         AllExchangeRate()
+        prefillFromQuery()
     });
 
+    // Point 5 : le calcul respecte désormais le sens choisi par l'agent (multiplier ou diviser),
+    // au lieu d'appliquer systématiquement une multiplication.
     watch(
-        [() => data.value.amount, () => data.value.rate],
-        ([amount, rate]) => {
+        [() => data.value.amount, () => data.value.rate, () => data.value.rate_direction],
+        ([amount, rate, direction]) => {
             if (amount && rate) {
-                // Calcul automatique du montant final
-                data.value.final_amount = (parseFloat(amount) * parseFloat(rate)).toFixed(2)
+                const a = parseFloat(amount)
+                const r = parseFloat(rate)
+                data.value.final_amount = direction === 'divide'
+                    ? (a / r).toFixed(2)
+                    : (a * r).toFixed(2)
             } else {
                 data.value.final_amount = amount
             }

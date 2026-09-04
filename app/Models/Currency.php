@@ -24,6 +24,11 @@ class Currency extends Model
         return $this->hasMany(Movement::class);
     }
 
+    public function cashRegister()
+    {
+        return $this->hasOne(CashRegister::class);
+    }
+
     public function exchangeRatesFrom()
     {
         return $this->hasMany(Exchangerate::class, 'from_currency_id');

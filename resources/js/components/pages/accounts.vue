@@ -133,6 +133,29 @@
             <div class="bg-white rounded-lg p-6 w-full sm:w-3/4 md:w-2/3 lg:w-1/2 max-h-[90vh] lg:max-w-[85%] overflow-y-auto">
                 <h2 class="text-lg font-semibold mb-4">History Accounts</h2>
 
+                <!-- Point 6 : filtre de dates libre, en plus de l'accordéon par mois -->
+                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 mb-4">
+                    <p class="text-sm font-medium text-default-700 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-days"></i> Exporter une période précise
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <div class="flex-1">
+                            <label class="block text-xs text-gray-500 mb-1">Du</label>
+                            <input type="date" v-model="rangeFilter.from" class="w-full border border-gray-300 rounded-md p-2 text-sm">
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-xs text-gray-500 mb-1">Au</label>
+                            <input type="date" v-model="rangeFilter.to" class="w-full border border-gray-300 rounded-md p-2 text-sm">
+                        </div>
+                        <div class="flex items-end">
+                            <button @click="exportRangeToExcel"
+                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md shadow-sm whitespace-nowrap">
+                                <i class="fa-solid fa-file-arrow-down me-1"></i> Exporter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Accordéon -->
                 <div class="border rounded-lg overflow-hidden mb-3" v-for="history in allHistory" :key="history.month">
                     <button @click="toggleAccordion(history.month)" class="w-full flex justify-between items-center px-4 py-3 bg-primary-100 hover:bg-gray-200 transition">
@@ -210,10 +233,15 @@
 <script setup>
 
     import { computed, onMounted, ref } from 'vue';
+    import { useRouter } from 'vue-router';
     import DataTable from '../layout/Datatable.vue';
     import { deleteData, getData, getSingleData, postData, putData } from '../plugins/api';
     import Swal from 'sweetalert2';
     import * as XLSX from 'xlsx'
+
+    const router = useRouter();
+    const currentAccountId = ref(null); // compte actuellement ouvert dans la modale d'historique
+    const rangeFilter = ref({ from: '', to: '' }); // Point 6 : filtre de dates pour l'export
 
     const allAccount = ref([]);
     const allClients = ref([]);
@@ -316,18 +344,20 @@
             searchable: false,
             render: function (data, type, row) {
                 return `
-                    <button class="btn bg-white text-dark me-3" onClick="HistoryAccountFunction(${row.id})"><i class="fas fa-history"></i> History</button>
-                    <button class="btn bg-primary text-white me-3" onClick="ShowAccountFunction(${row.id})"><i class="fas fa-edit"></i> Edit</button>
-                    <button class="btn bg-danger text-white" onClick="DeleteAccountFunction(${row.id})"><i class="fas fa-trash"></i> Delete</button>
+                    <button class="btn bg-emerald-50 text-emerald-700 hover:bg-emerald-100 me-2 rounded-md" onClick="CreditAccountFunction(${row.id})" title="Créditer"><i class="fa-solid fa-circle-plus"></i></button>
+                    <button class="btn bg-rose-50 text-rose-700 hover:bg-rose-100 me-3 rounded-md" onClick="DebitAccountFunction(${row.id})" title="Débiter"><i class="fa-solid fa-circle-minus"></i></button>
+                    <button class="btn bg-white text-dark me-3 rounded-md shadow-sm" onClick="HistoryAccountFunction(${row.id})"><i class="fas fa-history"></i> History</button>
+                    <button class="btn bg-primary text-white me-3 rounded-md shadow-sm" onClick="ShowAccountFunction(${row.id})"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="btn bg-danger text-white rounded-md shadow-sm" onClick="DeleteAccountFunction(${row.id})"><i class="fas fa-trash"></i> Delete</button>
                 `;
             }
         }
     ];
 
     async function HistoryAccountFunction(accountId) {
+        currentAccountId.value = accountId;
         try {
             await getData(`/movements/history/${accountId}`).then(res=>{
-                console.log(res.data.data);
                 allHistory.value = res.data.data;
                 historyModal.value = true
             })
@@ -335,6 +365,28 @@
             console.error("Error fetching history:", error);
         }
         
+    }
+
+    // Point 2 : boutons Créditer/Débiter -> ouvrent directement le formulaire d'opération,
+    // avec le compte et le type déjà pré-remplis (voir exchange.vue).
+    function CreditAccountFunction(accountId) {
+        router.push({ path: '/exchange', query: { account_id: accountId, type: 'deposit' } });
+    }
+    function DebitAccountFunction(accountId) {
+        router.push({ path: '/exchange', query: { account_id: accountId, type: 'withdraw' } });
+    }
+
+    // Point 6 : export avec filtre de dates libre ("du ... au ..."), en plus de l'export par mois.
+    function exportRangeToExcel() {
+        if (!rangeFilter.value.from && !rangeFilter.value.to) {
+            Swal.fire({ icon: 'warning', text: 'Choisissez au moins une date de début ou de fin.', timer: 2000, showConfirmButton: false });
+            return;
+        }
+        const params = new URLSearchParams();
+        if (rangeFilter.value.from) params.append('from', rangeFilter.value.from);
+        if (rangeFilter.value.to) params.append('to', rangeFilter.value.to);
+        if (currentAccountId.value) params.append('account_id', currentAccountId.value);
+        window.open(`/api/export-history?${params.toString()}`, '_blank');
     }
 
     function toggleAccordion(month) {
@@ -478,7 +530,9 @@
 
     
     async function exportToExcel(month) {
-        const url = `/api/export-history/${encodeURIComponent(month)}`;
+        const params = new URLSearchParams({ month });
+        if (currentAccountId.value) params.append('account_id', currentAccountId.value);
+        const url = `/api/export-history?${params.toString()}`;
         window.open(url, '_blank');
     }
 
@@ -489,6 +543,8 @@
         window.ShowAccountFunction = ShowAccountFunction
         window.DeleteAccountFunction = DeleteAccountFunction
         window.HistoryAccountFunction = HistoryAccountFunction
+        window.CreditAccountFunction = CreditAccountFunction
+        window.DebitAccountFunction = DebitAccountFunction
     });
 
 </script>
