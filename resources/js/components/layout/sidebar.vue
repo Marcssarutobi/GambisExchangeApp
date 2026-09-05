@@ -21,7 +21,7 @@
                         <RouterLink
                             class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
                             exact-active-class="active" to="/">
-                            <i class="fa-regular fa-home size-5"></i>
+                            <i class="material-symbols-rounded size-5">home</i>
                             Dashbord
                         </RouterLink>
                     </li>
@@ -30,7 +30,7 @@
                         <RouterLink
                             class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
                             exact-active-class="active" to="/customer">
-                            <i class="fa-regular fa-user-tie size-5"></i>
+                            <i class="material-symbols-rounded size-5">badge</i>
                             Customers
                         </RouterLink>
                     </li>
@@ -48,7 +48,7 @@
                         <RouterLink
                             class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
                             exact-active-class="active" to="/exchange">
-                            <i class="fa-solid fa-arrow-right-arrow-left size-5"></i>
+                            <i class="material-symbols-rounded size-5">swap_horiz</i>
                             Exchanges
                         </RouterLink>
                     </li>
@@ -57,7 +57,7 @@
                         <RouterLink
                             class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
                             exact-active-class="active" to="/cash-register">
-                            <i class="fa-solid fa-vault size-5"></i>
+                            <i class="material-symbols-rounded size-5">account_balance</i>
                             Caisse générale
                         </RouterLink>
                     </li>
@@ -68,7 +68,7 @@
                         <RouterLink to="/currencypurchases"
                             class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
                             exact-active-class="active">
-                            <i class="fa-solid fa-money-bill-transfer size-5"></i>
+                            <i class="material-symbols-rounded size-5">currency_exchange</i>
                             <span class="menu-text"> Achat / Vente devises </span>
                         </RouterLink>
                     </li>
@@ -77,7 +77,7 @@
                         <RouterLink to="/currency"
                             class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
                             exact-active-class="active">
-                            <i class="fa-solid fa-coins size-5"></i>
+                            <i class="material-symbols-rounded size-5">monetization_on</i>
                             <span class="menu-text"> Currency </span>
                         </RouterLink>
                     </li>
@@ -85,7 +85,7 @@
                         <RouterLink to="/rate"
                             class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
                             exact-active-class="active">
-                            <i class="fa-solid fa-chart-line size-5"></i>
+                            <i class="material-symbols-rounded size-5">trending_up</i>
                             <span class="menu-text"> Exchanges Rate </span>
                         </RouterLink>
                     </li>
@@ -96,7 +96,7 @@
                         <RouterLink to="/user"
                             class="group flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm font-medium text-default-600 transition-all hover:bg-primary/5"
                             exact-active-class="active">
-                            <i class="fa-solid fa-users-gear size-5"></i>
+                            <i class="material-symbols-rounded size-5">manage_accounts</i>
                             <span class="menu-text"> Users </span>
                         </RouterLink>
                     </li>

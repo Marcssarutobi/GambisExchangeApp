@@ -8,11 +8,11 @@
             <div class="md:flex hidden items-center gap-3 text-sm font-semibold">
                 <a href="#" class="text-sm font-medium text-default-700">Opatix</a>
 
-                <i class="i-tabler-chevron-right text-lg flex-shrink-0 text-default-500 rtl:rotate-180"></i>
+                <i class="material-symbols-rounded text-lg flex-shrink-0 text-default-500 rtl:rotate-180">chevron_right</i>
 
                 <a href="#" class="text-sm font-medium text-default-700">Menu</a>
 
-                <i class="i-tabler-chevron-right text-lg flex-shrink-0 text-default-500 rtl:rotate-180"></i>
+                <i class="material-symbols-rounded text-lg flex-shrink-0 text-default-500 rtl:rotate-180">chevron_right</i>
 
                 <a href="#" class="text-sm font-medium text-default-700" aria-current="page">Dashboard</a>
             </div>

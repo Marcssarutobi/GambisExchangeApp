@@ -8,7 +8,7 @@
             <div class="md:flex hidden items-center gap-3 text-sm font-semibold">
                 <RouterLink to="/" class="text-sm font-medium text-default-700">Home</RouterLink>
 
-                <i class="i-tabler-chevron-right text-lg flex-shrink-0 text-default-500 rtl:rotate-180"></i>
+                <i class="material-symbols-rounded text-lg flex-shrink-0 text-default-500 rtl:rotate-180">chevron_right</i>
 
                 <RouterLink to="/customer" class="text-sm font-medium text-default-700" aria-current="page">Accounts list</RouterLink>
             </div>
@@ -23,7 +23,7 @@
                 <div class="overflow-x-auto">
                     <div class="min-w-full inline-block align-middle">
                         <div class="overflow-hidden">
-                            <DataTable :data="allAccount" :columns="columns" />
+                            <DataTable :data="allAccount" :columns="columns" :DeleteAllFunction="DeleteAllAccountsFunction" />
                         </div>
                     </div>
                 </div>
@@ -129,40 +129,44 @@
             </div>
         </div>
 
-        <div v-if="historyModal" class="fixed inset-0 bg-black/50 flex items-center justify-center" style="z-index: 1000;">
-            <div class="bg-white rounded-lg p-6 w-full sm:w-3/4 md:w-2/3 lg:w-1/2 max-h-[90vh] lg:max-w-[85%] overflow-y-auto">
-                <h2 class="text-lg font-semibold mb-4">History Accounts</h2>
+        <div v-if="historyModal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4" style="z-index: 1000;">
+            <div class="bg-white rounded-2xl shadow-xl p-6 w-full sm:w-3/4 md:w-2/3 lg:w-1/2 max-h-[90vh] lg:max-w-[85%] overflow-y-auto">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+                    <h2 class="text-lg font-semibold text-default-900">Historique du compte</h2>
+                    <button @click="historyModal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="material-symbols-rounded">close</i>
+                    </button>
+                </div>
 
-                <!-- Point 6 : filtre de dates libre, en plus de l'accordéon par mois -->
-                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 mb-4">
-                    <p class="text-sm font-medium text-default-700 mb-2 flex items-center gap-2">
-                        <i class="fa-solid fa-calendar-days"></i> Exporter une période précise
+                <!-- Point 6 : filtre de dates libre, en plus de l'accordéon par mois.
+                     Barre de filtre compacte (champs à largeur fixe, pas étirés en 100%). -->
+                <div class="rounded-xl border border-gray-200 bg-gray-50/70 p-4 mb-4">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3 flex items-center gap-1.5">
+                        <i class="material-symbols-rounded text-base">calendar_month</i> Exporter une période précise
                     </p>
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <div class="flex-1">
+                    <div class="flex flex-wrap items-end gap-3">
+                        <div>
                             <label class="block text-xs text-gray-500 mb-1">Du</label>
-                            <input type="date" v-model="rangeFilter.from" class="w-full border border-gray-300 rounded-md p-2 text-sm">
+                            <input type="date" v-model="rangeFilter.from" class="w-40 border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
                         </div>
-                        <div class="flex-1">
+                        <div>
                             <label class="block text-xs text-gray-500 mb-1">Au</label>
-                            <input type="date" v-model="rangeFilter.to" class="w-full border border-gray-300 rounded-md p-2 text-sm">
+                            <input type="date" v-model="rangeFilter.to" class="w-40 border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
                         </div>
-                        <div class="flex items-end">
-                            <button @click="exportRangeToExcel"
-                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md shadow-sm whitespace-nowrap">
-                                <i class="fa-solid fa-file-arrow-down me-1"></i> Exporter
-                            </button>
-                        </div>
+                        <button @click="exportRangeToExcel"
+                            class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg shadow-sm whitespace-nowrap transition-colors">
+                            <i class="material-symbols-rounded text-base">download</i> Exporter
+                        </button>
                     </div>
                 </div>
 
                 <!-- Accordéon -->
-                <div class="border rounded-lg overflow-hidden mb-3" v-for="history in allHistory" :key="history.month">
-                    <button @click="toggleAccordion(history.month)" class="w-full flex justify-between items-center px-4 py-3 bg-primary-100 hover:bg-gray-200 transition">
-                        <span class="font-medium">{{ history.month }}</span>
+                <div class="border border-gray-200 rounded-xl overflow-hidden mb-3" v-for="history in allHistory" :key="history.month">
+                    <button @click="toggleAccordion(history.month)" class="w-full flex justify-between items-center px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <span class="font-medium text-default-800">{{ history.month }}</span>
                         <svg
                         :class="{'rotate-180': openAccordions[history.month]}"
-                        class="w-5 h-5 transform transition-transform duration-300"
+                        class="w-5 h-5 transform transition-transform duration-300 text-gray-500"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -172,13 +176,13 @@
                         </svg>
                     </button>
 
-                    <div v-show="openAccordions[history.month]" class="px-4 py-3 border-t bg-white text-sm text-gray-700">
+                    <div v-show="openAccordions[history.month]" class="px-4 py-3 border-t border-gray-200 bg-white text-sm text-gray-700">
 
-                        <div class="flex justify-end mb-2">
+                        <div class="flex justify-end mb-3">
                             <button 
                                 @click="exportToExcel(history.month)" 
-                                class="px-3 py-2 mb-2 bg-green-500 text-white rounded hover:bg-green-600 transition">
-                                📤 Exporter en Excel
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors">
+                                <i class="material-symbols-rounded text-base">download</i> Exporter en Excel
                             </button>
                         </div>
                         
@@ -344,11 +348,11 @@
             searchable: false,
             render: function (data, type, row) {
                 return `
-                    <button class="btn bg-emerald-50 text-emerald-700 hover:bg-emerald-100 me-2 rounded-md" onClick="CreditAccountFunction(${row.id})" title="Créditer"><i class="fa-solid fa-circle-plus"></i></button>
-                    <button class="btn bg-rose-50 text-rose-700 hover:bg-rose-100 me-3 rounded-md" onClick="DebitAccountFunction(${row.id})" title="Débiter"><i class="fa-solid fa-circle-minus"></i></button>
-                    <button class="btn bg-white text-dark me-3 rounded-md shadow-sm" onClick="HistoryAccountFunction(${row.id})"><i class="fas fa-history"></i> History</button>
-                    <button class="btn bg-primary text-white me-3 rounded-md shadow-sm" onClick="ShowAccountFunction(${row.id})"><i class="fas fa-edit"></i> Edit</button>
-                    <button class="btn bg-danger text-white rounded-md shadow-sm" onClick="DeleteAccountFunction(${row.id})"><i class="fas fa-trash"></i> Delete</button>
+                    <button class="btn bg-emerald-50 text-emerald-700 hover:bg-emerald-100 me-2 rounded-md" onClick="CreditAccountFunction(${row.id})" title="Créditer"><i class="material-symbols-rounded">add_circle</i></button>
+                    <button class="btn bg-rose-50 text-rose-700 hover:bg-rose-100 me-3 rounded-md" onClick="DebitAccountFunction(${row.id})" title="Débiter"><i class="material-symbols-rounded">remove_circle</i></button>
+                    <button class="btn bg-white text-dark me-3 rounded-md shadow-sm" onClick="HistoryAccountFunction(${row.id})"><i class="material-symbols-rounded">history</i> History</button>
+                    <button class="btn bg-primary text-white me-3 rounded-md shadow-sm" onClick="ShowAccountFunction(${row.id})"><i class="material-symbols-rounded">edit</i> Edit</button>
+                    <button class="btn bg-danger text-white rounded-md shadow-sm" onClick="DeleteAccountFunction(${row.id})"><i class="material-symbols-rounded">delete</i> Delete</button>
                 `;
             }
         }
@@ -494,6 +498,27 @@
                 AllAccount()
             }
         })
+    }
+
+    // Prop requise par le composant DataTable (bouton "Supprimer la sélection"),
+    // absente auparavant -> avertissement Vue + plantage si le bouton était cliqué.
+    async function DeleteAllAccountsFunction(ids) {
+        if (!ids || ids.length === 0) return;
+        const result = await Swal.fire({
+            title: `Supprimer ${ids.length} compte(s) ?`,
+            text: "Cette action est irréversible.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Oui, supprimer'
+        });
+        if (!result.isConfirmed) return;
+        for (const id of ids) {
+            try { await deleteData(`/deleteaccounts/${id}`); } catch (e) { console.error(e); }
+        }
+        Swal.fire({ icon: 'success', title: 'Supprimé', timer: 1500, showConfirmButton: false });
+        AllAccount();
     }
 
     async function DeleteAccountFunction(id) {

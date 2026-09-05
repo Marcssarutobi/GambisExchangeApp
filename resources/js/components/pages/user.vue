@@ -8,7 +8,7 @@
             <div class="md:flex hidden items-center gap-3 text-sm font-semibold">
                 <RouterLink to="/" class="text-sm font-medium text-default-700">Home</RouterLink>
 
-                <i class="i-tabler-chevron-right text-lg flex-shrink-0 text-default-500 rtl:rotate-180"></i>
+                <i class="material-symbols-rounded text-lg flex-shrink-0 text-default-500 rtl:rotate-180">chevron_right</i>
 
                 <RouterLink to="/customer" class="text-sm font-medium text-default-700" aria-current="page">Users list</RouterLink>
             </div>
@@ -23,7 +23,7 @@
                 <div class="overflow-x-auto">
                     <div class="min-w-full inline-block align-middle">
                         <div class="overflow-hidden">
-                            <DataTable  />
+                            <DataTable :data="[]" :columns="[]" :DeleteAllFunction="() => {}" />
                         </div>
                     </div>
                 </div>

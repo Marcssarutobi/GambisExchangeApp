@@ -8,7 +8,7 @@
             <div class="md:flex hidden items-center gap-3 text-sm font-semibold">
                 <RouterLink to="/" class="text-sm font-medium text-default-700">Home</RouterLink>
 
-                <i class="i-tabler-chevron-right text-lg flex-shrink-0 text-default-500 rtl:rotate-180"></i>
+                <i class="material-symbols-rounded text-lg flex-shrink-0 text-default-500 rtl:rotate-180">chevron_right</i>
 
                 <RouterLink to="/currencypurchases" class="text-sm font-medium text-default-700" aria-current="page">Achat / Vente de devises</RouterLink>
             </div>
@@ -62,12 +62,12 @@
         <div class="col-lg-12 mt-8">
             <div class="card overflow-hidden p-3">
                 <div class="card-header text-end">
-                    <button type="button" @click="showModal = true" class="btn btn-lg bg-primary text-white rounded-md shadow-sm"><i class="fa-solid fa-money-bill-transfer me-1"></i> Nouvel achat / vente</button>
+                    <button type="button" @click="showModal = true" class="btn btn-lg bg-primary text-white rounded-md shadow-sm"><i class="material-symbols-rounded me-1">currency_exchange</i> Nouvel achat / vente</button>
                 </div>
                 <div class="overflow-x-auto">
                     <div class="min-w-full inline-block align-middle">
                         <div class="overflow-hidden">
-                            <DataTable :data="purchases" :columns="columns" />
+                            <DataTable :data="purchases" :columns="columns" :DeleteAllFunction="DeleteAll_purchases_Function" />
                         </div>
                     </div>
                 </div>
@@ -342,8 +342,8 @@
             searchable: false,
             render: function (data, type, row) {
                 return `
-                    <button class="btn bg-primary text-white me-3" onClick="GetCurrencyPurchaseFunction(${row.id})"><i class="fas fa-edit"></i> Edit</button>
-                    <button class="btn bg-danger text-white" onClick="DeleteCurrencyPurchase(${row.id})"><i class="fas fa-trash"></i> Delete</button>
+                    <button class="btn bg-primary text-white me-3" onClick="GetCurrencyPurchaseFunction(${row.id})"><i class="material-symbols-rounded">edit</i> Edit</button>
+                    <button class="btn bg-danger text-white" onClick="DeleteCurrencyPurchase(${row.id})"><i class="material-symbols-rounded">delete</i> Delete</button>
                 `;
             }
         }
@@ -422,6 +422,28 @@
                 AllCurencyPurchases()
             }
         })
+    }
+
+    
+    // Prop requise par le composant DataTable (bouton "Supprimer la sélection"),
+    // absente auparavant -> avertissement Vue + plantage si le bouton était cliqué.
+    async function DeleteAll_purchases_Function(ids) {
+        if (!ids || ids.length === 0) return;
+        const result = await Swal.fire({
+            title: `Supprimer ${ids.length} element(s) ?`,
+            text: "Cette action est irréversible.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Oui, supprimer'
+        });
+        if (!result.isConfirmed) return;
+        for (const id of ids) {
+            try { await deleteData('/deletecurrencypurchases/' + id); } catch (e) { console.error(e); }
+        }
+        Swal.fire({ icon: 'success', title: 'Supprimé', timer: 1500, showConfirmButton: false });
+        AllCurencyPurchases();
     }
 
     async function DeleteCurrencyPurchase(id) {

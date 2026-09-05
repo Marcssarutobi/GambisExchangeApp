@@ -8,7 +8,7 @@
             <div class="md:flex hidden items-center gap-3 text-sm font-semibold">
                 <RouterLink to="/" class="text-sm font-medium text-default-700">Home</RouterLink>
 
-                <i class="i-tabler-chevron-right text-lg flex-shrink-0 text-default-500 rtl:rotate-180"></i>
+                <i class="material-symbols-rounded text-lg flex-shrink-0 text-default-500 rtl:rotate-180">chevron_right</i>
 
                 <RouterLink to="/customer" class="text-sm font-medium text-default-700" aria-current="page">Customer list</RouterLink>
             </div>
@@ -23,7 +23,7 @@
                 <div class="overflow-x-auto">
                     <div class="min-w-full inline-block align-middle">
                         <div class="overflow-hidden">
-                            <DataTable :data="allClients" :columns="columns" />
+                            <DataTable :data="allClients" :columns="columns" :DeleteAllFunction="DeleteAll_allClients_Function" />
                         </div>
                     </div>
                 </div>
@@ -233,9 +233,9 @@
             searchable: false,
             render: function (data, type, row) {
                 return `
-                    <button class="btn bg-emerald-50 text-emerald-700 hover:bg-emerald-100 me-3 rounded-md" onClick="ViewClientAccounts(${row.id})" title="Voir les comptes de ce client"><i class="fa-solid fa-wallet"></i> Comptes</button>
-                    <button class="btn bg-primary text-white me-3 rounded-md shadow-sm" onClick="ShowClient(${row.id})"><i class="fas fa-edit"></i> Edit</button>
-                    <button class="btn bg-danger text-white rounded-md shadow-sm" onClick="DeleteClient(${row.id})"><i class="fas fa-trash"></i> Delete</button>
+                    <button class="btn bg-emerald-50 text-emerald-700 hover:bg-emerald-100 me-3 rounded-md" onClick="ViewClientAccounts(${row.id})" title="Voir les comptes de ce client"><i class="material-symbols-rounded">account_balance_wallet</i> Comptes</button>
+                    <button class="btn bg-primary text-white me-3 rounded-md shadow-sm" onClick="ShowClient(${row.id})"><i class="material-symbols-rounded">edit</i> Edit</button>
+                    <button class="btn bg-danger text-white rounded-md shadow-sm" onClick="DeleteClient(${row.id})"><i class="material-symbols-rounded">delete</i> Delete</button>
                 `;
             }
         }
@@ -297,6 +297,28 @@
                 AllCustomer();
             }
         })
+    }
+
+    
+    // Prop requise par le composant DataTable (bouton "Supprimer la sélection"),
+    // absente auparavant -> avertissement Vue + plantage si le bouton était cliqué.
+    async function DeleteAll_allClients_Function(ids) {
+        if (!ids || ids.length === 0) return;
+        const result = await Swal.fire({
+            title: `Supprimer ${ids.length} element(s) ?`,
+            text: "Cette action est irréversible.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Oui, supprimer'
+        });
+        if (!result.isConfirmed) return;
+        for (const id of ids) {
+            try { await deleteData('/deleteclients/'+id); } catch (e) { console.error(e); }
+        }
+        Swal.fire({ icon: 'success', title: 'Supprimé', timer: 1500, showConfirmButton: false });
+        AllCustomer();
     }
 
     async function DeleteClient(id) {

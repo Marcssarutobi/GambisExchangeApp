@@ -8,9 +8,9 @@
 
             <div class="md:flex hidden items-center gap-3 text-sm font-semibold">
                 <RouterLink to="/" class="text-sm font-medium text-default-700">Home</RouterLink>
-                <i class="i-tabler-chevron-right text-lg flex-shrink-0 text-default-500 rtl:rotate-180"></i>
+                <i class="material-symbols-rounded text-lg flex-shrink-0 text-default-500 rtl:rotate-180">chevron_right</i>
                 <RouterLink to="/customer" class="text-sm font-medium text-default-700">Customer list</RouterLink>
-                <i class="i-tabler-chevron-right text-lg flex-shrink-0 text-default-500 rtl:rotate-180"></i>
+                <i class="material-symbols-rounded text-lg flex-shrink-0 text-default-500 rtl:rotate-180">chevron_right</i>
                 <span class="text-sm font-medium text-default-700" aria-current="page">Comptes</span>
             </div>
         </div>
@@ -18,7 +18,7 @@
 
         <div class="mb-4">
             <RouterLink to="/customer" class="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">
-                <i class="fa-solid fa-arrow-left"></i> Retour à la liste des clients
+                <i class="material-symbols-rounded">arrow_back</i> Retour à la liste des clients
             </RouterLink>
         </div>
 
@@ -27,7 +27,7 @@
         </div>
 
         <div v-else-if="accounts.length === 0" class="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center text-default-500">
-            <i class="fa-solid fa-wallet text-3xl mb-2 block"></i>
+            <i class="material-symbols-rounded text-3xl mb-2 block">account_balance_wallet</i>
             Ce client n'a pas encore de compte.
         </div>
 
@@ -52,11 +52,11 @@
                 <div class="grid grid-cols-2 gap-2">
                     <button @click="goToOperation(account, 'deposit')"
                         class="flex items-center justify-center gap-2 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium py-2 transition-all">
-                        <i class="fa-solid fa-circle-plus"></i> Créditer
+                        <i class="material-symbols-rounded">add_circle</i> Créditer
                     </button>
                     <button @click="goToOperation(account, 'withdraw')"
                         class="flex items-center justify-center gap-2 rounded-md bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium py-2 transition-all">
-                        <i class="fa-solid fa-circle-minus"></i> Débiter
+                        <i class="material-symbols-rounded">remove_circle</i> Débiter
                     </button>
                 </div>
             </div>

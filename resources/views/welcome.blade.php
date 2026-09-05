@@ -26,35 +26,10 @@
             href="/css/app-wa-462758aa1e172f82d39e1ea35e919e0a.css?vsn=d"
         >
 
-        <link
-            rel="stylesheet"
-            href="https://site-assets.fontawesome.com/releases/v6.6.0/css/all.css"
-        >
-
-        <link
-            rel="stylesheet"
-            href="https://site-assets.fontawesome.com/releases/v6.6.0/css/sharp-duotone-solid.css"
-        >
-
-        <link
-            rel="stylesheet"
-            href="https://site-assets.fontawesome.com/releases/v6.6.0/css/sharp-thin.css"
-        >
-
-        <link
-            rel="stylesheet"
-            href="https://site-assets.fontawesome.com/releases/v6.6.0/css/sharp-solid.css"
-        >
-
-        <link
-            rel="stylesheet"
-            href="https://site-assets.fontawesome.com/releases/v6.6.0/css/sharp-regular.css"
-        >
-
-        <link
-            rel="stylesheet"
-            href="https://site-assets.fontawesome.com/releases/v6.6.0/css/sharp-light.css"
-        >
+        <!-- Icônes : le projet utilise Google Material Symbols (self-hosted via icons.min.css,
+             déjà chargé ci-dessus) sur toute l'application. Les liens FontAwesome CDN ci-dessous
+             ont été retirés : ils renvoyaient une erreur 403 Forbidden (licence/kit invalide),
+             et FontAwesome n'était de toute façon jamais bundlé localement dans le projet. -->
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>

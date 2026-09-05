@@ -8,7 +8,7 @@
             <div class="md:flex hidden items-center gap-3 text-sm font-semibold">
                 <RouterLink to="/" class="text-sm font-medium text-default-700">Home</RouterLink>
 
-                <i class="i-tabler-chevron-right text-lg flex-shrink-0 text-default-500 rtl:rotate-180"></i>
+                <i class="material-symbols-rounded text-lg flex-shrink-0 text-default-500 rtl:rotate-180">chevron_right</i>
 
                 <RouterLink to="/customer" class="text-sm font-medium text-default-700" aria-current="page">Currency list</RouterLink>
             </div>
@@ -23,7 +23,7 @@
                 <div class="overflow-x-auto">
                     <div class="min-w-full inline-block align-middle">
                         <div class="overflow-hidden">
-                            <DataTable :data="allCurrency" :columns="columns" />
+                            <DataTable :data="allCurrency" :columns="columns" :DeleteAllFunction="DeleteAll_allCurrency_Function" />
                         </div>
                     </div>
                 </div>
@@ -186,8 +186,8 @@
             searchable: false,
             render: function (data, type, row) {
                 return `
-                    <button class="btn bg-primary text-white me-3" onClick="ShowCurrencyFunction(${row.id})"><i class="fas fa-edit"></i> Edit</button>
-                    <button class="btn bg-danger text-white" onClick="DeleteCurrencyFunction(${row.id})"><i class="fas fa-trash"></i> Delete</button>
+                    <button class="btn bg-primary text-white me-3" onClick="ShowCurrencyFunction(${row.id})"><i class="material-symbols-rounded">edit</i> Edit</button>
+                    <button class="btn bg-danger text-white" onClick="DeleteCurrencyFunction(${row.id})"><i class="material-symbols-rounded">delete</i> Delete</button>
                 `;
             }
         }
@@ -250,6 +250,28 @@
                 
             }
         })
+    }
+
+    
+    // Prop requise par le composant DataTable (bouton "Supprimer la sélection"),
+    // absente auparavant -> avertissement Vue + plantage si le bouton était cliqué.
+    async function DeleteAll_allCurrency_Function(ids) {
+        if (!ids || ids.length === 0) return;
+        const result = await Swal.fire({
+            title: `Supprimer ${ids.length} element(s) ?`,
+            text: "Cette action est irréversible.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Oui, supprimer'
+        });
+        if (!result.isConfirmed) return;
+        for (const id of ids) {
+            try { await deleteData('/deletecurrencies/'+id); } catch (e) { console.error(e); }
+        }
+        Swal.fire({ icon: 'success', title: 'Supprimé', timer: 1500, showConfirmButton: false });
+        AllCurrencyFunction();
     }
 
     async function DeleteCurrencyFunction(id){

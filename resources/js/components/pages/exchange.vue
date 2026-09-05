@@ -8,7 +8,7 @@
             <div class="md:flex hidden items-center gap-3 text-sm font-semibold">
                 <RouterLink to="/" class="text-sm font-medium text-default-700">Home</RouterLink>
 
-                <i class="i-tabler-chevron-right text-lg flex-shrink-0 text-default-500 rtl:rotate-180"></i>
+                <i class="material-symbols-rounded text-lg flex-shrink-0 text-default-500 rtl:rotate-180">chevron_right</i>
 
                 <RouterLink to="/customer" class="text-sm font-medium text-default-700" aria-current="page">Exchanges list</RouterLink>
             </div>
@@ -18,12 +18,12 @@
         <div class="col-lg-12 mt-8">
             <div class="card overflow-hidden p-3">
                 <div class="card-header text-end">
-                    <button type="button" @click="showModal = true" class="btn btn-lg bg-primary text-white rounded-md shadow-sm"><i class="fa-solid fa-arrow-right-arrow-left me-1"></i> Add Exchanges</button>
+                    <button type="button" @click="showModal = true" class="btn btn-lg bg-primary text-white rounded-md shadow-sm"><i class="material-symbols-rounded me-1">swap_horiz</i> Add Exchanges</button>
                 </div>
                 <div class="overflow-x-auto">
                     <div class="min-w-full inline-block align-middle">
                         <div class="overflow-hidden">
-                            <DataTable :data="allMovements" :columns="columns" />
+                            <DataTable :data="allMovements" :columns="columns" :DeleteAllFunction="() => {}" />
                         </div>
                     </div>
                 </div>

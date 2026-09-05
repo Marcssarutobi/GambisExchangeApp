@@ -19,13 +19,13 @@
                     <!-- Topbar Search -->
                     <!-- <div class="md:flex hidden items-center relative">
                         <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                            <i class="i-tabler-search text-base"></i>
+                            <i class="material-symbols-rounded text-base">search</i>
                         </div>
                         <input type="search"
                             class="form-input px-10 rounded-lg  bg-default-500/10 border-transparent focus:border-transparent w-80"
                             placeholder="Search...">
                         <button type="button" class="absolute inset-y-0 end-0 flex items-center pe-3">
-                            <i class="i-tabler-microphone text-base hover:text-black"></i>
+                            <i class="material-symbols-rounded text-base hover:text-black">mic</i>
                         </button>
                     </div> -->
                 </div>
@@ -53,7 +53,7 @@
                                             alt="Alex image">
                                         <div
                                             class="absolute flex items-center justify-center w-5 h-5 ms-6 -mt-5 bg-green-500 border border-white rounded-full">
-                                            <i class="i-tabler-alert-circle text-white w-4 h-4"></i>
+                                            <i class="material-symbols-rounded text-white w-4 h-4">error</i>
                                         </div>
                                     </div>
                                     <div class="w-full ps-3">
@@ -72,7 +72,7 @@
                                             alt="Sarah image">
                                         <div
                                             class="absolute flex items-center justify-center w-5 h-5 ms-6 -mt-5 bg-primary-600 border border-white rounded-full">
-                                            <i class="i-tabler-file-text text-white w-4 h-4"></i>
+                                            <i class="material-symbols-rounded text-white w-4 h-4">description</i>
                                         </div>
                                     </div>
                                     <div class="w-full ps-3">
@@ -90,7 +90,7 @@
                                             alt="Michael image">
                                         <div
                                             class="absolute flex items-center justify-center w-5 h-5 ms-6 -mt-5 bg-purple-500 border border-white rounded-full">
-                                            <i class="i-tabler-message text-white w-4 h-4"></i>
+                                            <i class="material-symbols-rounded text-white w-4 h-4">chat</i>
                                         </div>
                                     </div>
                                     <div class="w-full ps-3">
@@ -108,7 +108,7 @@
                                             alt="Emma image">
                                         <div
                                             class="absolute flex items-center justify-center w-5 h-5 ms-6 -mt-5 bg-pink-500 border border-white rounded-full">
-                                            <i class="i-tabler-heart text-white w-4 h-4"></i>
+                                            <i class="material-symbols-rounded text-white w-4 h-4">favorite</i>
                                         </div>
                                     </div>
                                     <div class="w-full ps-3">
@@ -125,7 +125,7 @@
                             <a href="#"
                                 class="block py-2 text-sm font-medium text-center text-default-900 rounded-b-lg bg-default-50 hover:bg-default-100">
                                 <div class="inline-flex items-center ">
-                                    <i class="i-tabler-eye size-4 text-default-500"></i>
+                                    <i class="material-symbols-rounded size-4 text-default-500">visibility</i>
                                     View all
                                 </div>
                             </a>
