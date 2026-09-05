@@ -15,7 +15,9 @@
         <!-- App css  (Mandatory in All Pages) -->
         <link href="{{ asset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css">
 
-        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+        <!-- Tailwind est désormais compilé par Vite (voir vite.config.js + resources/css/app.css).
+             Le script CDN runtime a été retiré : il était redondant et moins fiable
+             (aucun plugin de formulaires, pas de cache, dépendance à un CDN externe). -->
 
         <link
             rel="stylesheet"

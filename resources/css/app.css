@@ -1,1 +1,45 @@
+/* Bug corrigé : ce fichier ne contenait qu'un commentaire, Tailwind n'était donc jamais
+   réellement compilé par Vite. Tout le style Tailwind du projet ne tenait que sur le
+   script CDN "runtime" (@tailwindcss/browser) chargé dans welcome.blade.php, qui recompile
+   les classes à la volée dans le navigateur, sans plugin de formulaires ni cache -
+   d'où des <input>/<select> jamais homogénéisés (apparence brute de l'OS/du navigateur). */
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+
 /* Preline UI CSS is included in the JavaScript bundle */
+
+/*
+   Petite couche de polish "pro" pour les champs natifs (inputs, selects, date pickers)
+   utilisés dans les filtres et les formulaires de l'application, en complément des
+   classes utilitaires Tailwind (border, rounded-md, p-2, etc.) déjà présentes partout.
+*/
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="email"],
+input[type="password"],
+select,
+textarea {
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--color-primary, #4f46e5);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #4f46e5) 15%, transparent);
+}
+
+/* Icône du sélecteur de date uniformisée (au lieu de l'icône brute du système) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.6;
+    cursor: pointer;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}

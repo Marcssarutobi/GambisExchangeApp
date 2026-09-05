@@ -87,3 +87,25 @@ Comptes de test (créés par le seeder existant `UserSeeder`, inchangé) :
 - **Seeder** : ajouté (`DemoDataSeeder`), voir la section ci-dessus.
 
 ⚠️ Si après avoir appliqué ces corrections certains écrans (nouveaux ou anciens) restent mal stylés, la cause la plus probable est un rebuild d'assets manquant : lancez `npm run build` (ou `npm run dev` en local) après chaque application de patch. Le CSS Tailwind de ce projet est généré à la compilation, pas au chargement de la page.
+
+## Corrections suite au deuxième retour de test
+
+1. **Champ "Sens du taux" invisible dans "Add Exchanges"**
+   Il ne s'affichait que si une détection automatique compte/devise passait, ce qui était fragile. Il est désormais **toujours visible** dans le formulaire, avec une note précisant qu'il n'est utilisé que si la devise saisie diffère de la devise du compte (ignoré par le serveur sinon).
+
+2. **Le dépôt initial à la création d'un compte n'apparaissait pas dans la caisse générale**
+   `AccountController::store` créait le mouvement d'ouverture directement en base, sans passer par `CashRegisterService`. Corrigé : ce dépôt initial alimente désormais la caisse générale comme n'importe quel autre dépôt.
+
+3. **Le solde total du tableau de bord mélangeait toutes les devises**
+   `DashboardController::totalBalance()` (ainsi que `depositsSummary()` et `withdrawalsSummary()`) additionnaient les montants de comptes en devises différentes comme s'il s'agissait de la même devise, et le frontend affichait "XOF" en dur peu importe la vraie devise. Corrigé : ces 3 indicateurs sont désormais calculés **et affichés par devise** (comme la caisse générale), sur `home.vue`.
+   ⚠️ Le graphique de tendance (`financialSummary`, courbe dépôts/retraits/solde) additionne encore toutes les devises pour tracer une seule courbe — non corrigé dans cette passe (nécessiterait une refonte du graphique en plusieurs courbes par devise). À signaler si c'est gênant en pratique.
+
+4. **Design des filtres (inputs, selects, dates) "affreux"**
+   Cause racine trouvée : `resources/css/app.css` ne contenait qu'un commentaire, Tailwind n'était **jamais réellement compilé** par Vite. Tout le style Tailwind du projet reposait sur un script CDN "runtime" (`@tailwindcss/browser`) chargé dans `welcome.blade.php`, qui recompile les classes à la volée dans le navigateur — sans plugin de formulaires, d'où des `<input>`/`<select>` jamais homogénéisés. Corrigé :
+   - Ajout du vrai plugin `@tailwindcss/vite` + `@tailwindcss/forms` dans `vite.config.js` / `resources/css/app.css`
+   - Retrait du script CDN devenu inutile (et source de double-traitement) dans `welcome.blade.php`
+   - Petite couche de style pour les champs natifs (focus, icône du sélecteur de date) dans `app.css`
+   - **Vérifié avec un vrai `npm run build`** : le CSS compilé fait maintenant ~54 Ko (contre un fichier vide avant), preuve que Tailwind tourne réellement.
+
+   Cette correction bénéficie à **toute l'application**, pas seulement aux écrans que j'ai ajoutés — les filtres, formulaires et listes existants devraient aussi être plus nets après ce patch.
+

@@ -25,7 +25,8 @@
                     <div class="flex items- justify-between">
                         <div>
                             <p class="text-xs tracking-wide font-semibold uppercase text-default-700 mb-3">Total Balance</p>
-                            <h4 class="font-semibold text-2xl text-default-700">{{ balance }} XOF</h4>
+                            <h4 v-if="balance.length === 0" class="font-semibold text-2xl text-default-700">0</h4>
+                            <h4 v-for="b in balance" :key="b.currency" class="font-semibold text-lg text-default-700">{{ b.total }} {{ b.currency }}</h4>
                         </div>
 
                         <div
@@ -44,7 +45,8 @@
                         <div>
                             <p class="text-xs tracking-wide font-semibold uppercase text-default-700 mb-3">
                                 Total Deposit / Day</p>
-                            <h4 class="font-semibold text-2xl text-default-700">{{ deposit }} XOF</h4>
+                            <h4 v-if="deposit.length === 0" class="font-semibold text-2xl text-default-700">0</h4>
+                            <h4 v-for="d in deposit" :key="d.currency" class="font-semibold text-lg text-default-700">{{ d.total }} {{ d.currency }}</h4>
                         </div>
 
                         <div
@@ -62,7 +64,8 @@
                     <div class="flex items- justify-between">
                         <div>
                             <p class="text-xs tracking-wide font-semibold uppercase text-default-700 mb-3"> Total Withdrawal / Day</p>
-                            <h4 class="font-semibold text-2xl text-default-700">{{ withdrawal }} XOF</h4>
+                            <h4 v-if="withdrawal.length === 0" class="font-semibold text-2xl text-default-700">0</h4>
+                            <h4 v-for="w in withdrawal" :key="w.currency" class="font-semibold text-lg text-default-700">{{ w.total }} {{ w.currency }}</h4>
                         </div>
 
                         <div
@@ -185,13 +188,13 @@
     import { getData } from '../plugins/api';
     import {renderDepositGraph,renderWithdrawalGraph,renderBalanceGraph,renderClientGraph,renderLineChart,renderDonutChart} from '../plugins/apex'
 
-    const balance = ref('')
+    const balance = ref([])
     const dailyBalances = ref([])
     const dailyBalanceDates = ref([])
-    const deposit = ref('')
+    const deposit = ref([])
     const dailyDeposits = ref([])
     const dailyDates = ref([])
-    const withdrawal = ref('')
+    const withdrawal = ref([])
     const dailyWithdrawals = ref([])
     const dailyWithdrawalDates = ref([])
     const clients = ref('')
@@ -200,9 +203,18 @@
     const lastClients = ref([])
     const lastMovements = ref([])
 
+    // Bug corrigé : ces 3 cartes additionnaient toutes les devises ensemble et affichaient
+    // "XOF" en dur. Chaque montant est désormais gardé par devise (voir le template).
+    function formatByCurrency(rows) {
+        return (rows || []).map(row => ({
+            currency: row.currency,
+            total: Number(row.total).toLocaleString('fr-FR'),
+        }));
+    }
+
     async function TotalBalance() {
         await getData('/total-balance').then(res => {
-            balance.value = Number(res.data.totalBalance).toLocaleString("fr-FR")
+            balance.value = formatByCurrency(res.data.balancesByCurrency)
             dailyBalances.value = res.data.dailyDeposits.map(item => parseFloat(item.total))
             dailyBalanceDates.value = res.data.dailyDeposits.map(item => item.date)
             renderBalanceGraph(dailyBalances.value, dailyBalanceDates.value);
@@ -211,7 +223,7 @@
 
     async function TotalDeposit() {
         await getData('/deposits-summary').then(res => {
-            deposit.value = Number(res.data.todayDeposits).toLocaleString("fr-FR")
+            deposit.value = formatByCurrency(res.data.todayDeposits)
             dailyDeposits.value = res.data.dailyDeposits.map(item => parseFloat(item.total))
             dailyDates.value = res.data.dailyDeposits.map(item => item.date)
 
@@ -222,7 +234,7 @@
 
     async function TotalWithdrawal() {
         await getData('/withdrawals-summary').then(res => {
-            withdrawal.value = Number(res.data.todayWithdrawals).toLocaleString("fr-FR")
+            withdrawal.value = formatByCurrency(res.data.todayWithdrawals)
             dailyWithdrawals.value = res.data.dailyWithdrawals.map(item => parseFloat(item.total))
             dailyWithdrawalDates.value = res.data.dailyWithdrawals.map(item => item.date)
 

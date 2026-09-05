@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Account;
 use App\Models\Movement;
+use App\Services\CashRegisterService;
 use Illuminate\Support\Facades\DB;
 
 class AccountController extends Controller
@@ -36,7 +37,7 @@ class AccountController extends Controller
         $account->load('client');
 
         if ($account->balance > 0) {
-            Movement::create([
+            $movement = Movement::create([
                 'account_id'   => $account->id,
                 'type'         => 'deposit',
                 'amount'       => $account->balance,
@@ -47,6 +48,17 @@ class AccountController extends Controller
                 'balance_before' => 0,                     // solde avant
                 'balance_after'  => $account->balance, 
             ]);
+
+            // Bug corrigé : ce premier dépôt (solde d'ouverture) n'était jamais reflété
+            // dans la caisse générale car il ne passait pas par MovementController.
+            CashRegisterService::record(
+                $account->currency_id,
+                'client_deposit',
+                'in',
+                (float) $account->balance,
+                $movement,
+                'Dépôt initial à la création du compte ' . $account->code
+            );
         }
 
         DB::commit();

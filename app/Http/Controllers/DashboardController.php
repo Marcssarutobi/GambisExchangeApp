@@ -40,12 +40,20 @@ class DashboardController extends Controller
     }
 
 
+    /**
+     * Bug corrigé : additionnait tous les comptes quelle que soit leur devise
+     * (ex: 500 USD + 150 000 XOF affiché comme "150 500 XOF"). Renvoie désormais
+     * un solde par devise, comme pour la caisse générale.
+     */
     public function totalBalance()
     {
-        // Total global
-        $totalBalance = Account::sum('balance');
+        // Solde total par devise
+        $balancesByCurrency = Account::join('currencies', 'accounts.currency_id', '=', 'currencies.id')
+            ->select('currencies.code as currency', DB::raw('SUM(accounts.balance) as total'))
+            ->groupBy('currencies.code')
+            ->get();
 
-        // Total reçu par jour
+        // Total reçu par jour (toutes devises confondues, à titre indicatif uniquement)
         $dailyDeposits = Account::select(
             DB::raw('DATE(created_at) as date'),
             DB::raw('SUM(balance) as total')
@@ -55,19 +63,23 @@ class DashboardController extends Controller
             ->get();
 
         return response()->json([
-            'totalBalance' => $totalBalance,
+            'balancesByCurrency' => $balancesByCurrency,
             'dailyDeposits' => $dailyDeposits,
         ]);
     }
 
     public function depositsSummary()
     {
-        // 1. Montant total des dépôts aujourd’hui
-        $todayDeposits = Movement::where('type', 'deposit')
-            ->whereDate('created_at', now()->toDateString())
-            ->sum('final_amount');
+        // Bug corrigé : mélangeait les devises (final_amount de comptes en USD, XOF...
+        // additionnés ensemble). Montant du jour désormais par devise.
+        $todayDeposits = Movement::join('currencies', 'movements.currency_id', '=', 'currencies.id')
+            ->where('movements.type', 'deposit')
+            ->whereDate('movements.created_at', now()->toDateString())
+            ->select('currencies.code as currency', DB::raw('SUM(movements.final_amount) as total'))
+            ->groupBy('currencies.code')
+            ->get();
 
-        // 2. Montant total des dépôts groupés par jour
+        // 2. Montant total des dépôts groupés par jour (toutes devises confondues, à titre indicatif)
         $dailyDeposits = Movement::select(
             DB::raw('DATE(created_at) as date'),
             DB::raw('SUM(final_amount) as total')
@@ -85,12 +97,15 @@ class DashboardController extends Controller
 
     public function withdrawalsSummary()
     {
-        // 1. Montant total des retraits aujourd’hui
-        $todayWithdrawals = Movement::where('type', 'withdraw')
-            ->whereDate('created_at', now()->toDateString())
-            ->sum('final_amount');
+        // Même correctif que depositsSummary() : montant du jour par devise.
+        $todayWithdrawals = Movement::join('currencies', 'movements.currency_id', '=', 'currencies.id')
+            ->where('movements.type', 'withdraw')
+            ->whereDate('movements.created_at', now()->toDateString())
+            ->select('currencies.code as currency', DB::raw('SUM(movements.final_amount) as total'))
+            ->groupBy('currencies.code')
+            ->get();
 
-        // 2. Montant total des retraits groupés par jour
+        // 2. Montant total des retraits groupés par jour (toutes devises confondues, à titre indicatif)
         $dailyWithdrawals = Movement::select(
             DB::raw('DATE(created_at) as date'),
             DB::raw('SUM(final_amount) as total')

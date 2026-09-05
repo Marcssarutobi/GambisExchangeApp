@@ -91,16 +91,17 @@
                         Point 5 : correctif du bug de calcul. Le taux reste saisi manuellement
                         (il varie), mais l'agent choisit désormais explicitement le sens à
                         appliquer, au lieu d'une multiplication systématique (bug signalé sur le Naira).
-                        Rangée pleine largeur, affichée uniquement si une conversion est nécessaire,
-                        pour ne jamais laisser une colonne vide à côté.
+                        Toujours visible (ne dépend plus d'une détection auto compte/devise, trop
+                        fragile) : ignoré côté serveur si la devise saisie = devise du compte.
                     -->
-                    <div class="grid grid-cols-1 gap-4" v-if="needsConversion">
+                    <div class="grid grid-cols-1 gap-4">
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Sens du taux</label>
                             <select v-model="data.rate_direction" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
                                 <option value="multiply">Multiplier (montant × taux)</option>
                                 <option value="divide">Diviser (montant ÷ taux)</option>
                             </select>
+                            <p class="text-xs text-gray-500 mt-1">Utilisé uniquement si la devise saisie est différente de la devise du compte.</p>
                         </div>
                     </div>
 
@@ -171,12 +172,6 @@
         }
     }
 
-    // Point 5 : une conversion (et donc un sens à préciser) n'est nécessaire que si la devise
-    // saisie diffère de la devise du compte sélectionné.
-    const needsConversion = computed(() => {
-        const account = allAccount.value.find(a => a.id === data.value.account_id);
-        return !!(account && data.value.currency_id && account.currency_id !== data.value.currency_id);
-    });
     const isEmpty = ref({})
     const msgInput = ref({})
     const isLoader = ref(false)
