@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Currency;
 use App\Models\CurrencyPurchases;
 use App\Models\Movement;
+use App\Models\CashRegister;
 use App\Services\CashRegisterService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +38,24 @@ class CurrencyPurchasesController extends Controller
         ]);
 
         $validated['supplier'] = $validated['supplier'] ?? '';
+
+        // Point 5 (retour client) : un ACHAT ne peut pas payer plus que ce qui est
+        // réellement disponible en caisse dans la devise de paiement. La vente n'est
+        // volontairement pas concernée (on encaisse de l'argent, on n'en sort pas).
+        if ($validated['type'] === 'achat' && !empty($validated['payment_currency_id'])) {
+            $cashRegister = CashRegister::where('currency_id', $validated['payment_currency_id'])->first();
+            $available = $cashRegister ? (float) $cashRegister->balance : 0;
+
+            if ((float) $validated['total_paid'] > $available) {
+                $currencyCode = Currency::find($validated['payment_currency_id'])->code ?? '';
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "Solde de caisse insuffisant en {$currencyCode} pour cet achat. "
+                        . "Disponible : " . number_format($available, 2, ',', ' ') . " {$currencyCode}, "
+                        . "montant demandé : " . number_format((float) $validated['total_paid'], 2, ',', ' ') . " {$currencyCode}.",
+                ], 422);
+            }
+        }
 
         $purchase = DB::transaction(function () use ($validated) {
             $purchase = CurrencyPurchases::create($validated);

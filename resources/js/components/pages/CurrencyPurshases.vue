@@ -75,8 +75,9 @@
             </div> <!-- end card -->
         </div>
 
-        <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 sm:p-6 md:p-8" style="z-index: 1000;">
-            <div class="bg-white rounded-lg p-6 w-full sm:w-3/4 md:w-2/3 lg:w-1/2 max-h-[90vh] lg:max-w-[50%] overflow-y-auto">
+        <Teleport to="body">
+        <div v-if="showModal" class="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 w-full max-w-xl max-h-[85vh] overflow-y-auto">
                 <h2 class="text-lg font-semibold">Add Purchases</h2>
 
 
@@ -162,9 +163,11 @@
                 </form>
             </div>
         </div>
+        </Teleport>
 
-        <div v-if="updateModal" class="fixed inset-0 bg-black/50 flex items-center justify-center" style="z-index: 1000;">
-            <div class="bg-white rounded-lg p-6 w-full sm:w-3/4 md:w-2/3 lg:w-1/2 max-h-[90vh] lg:max-w-[50%] overflow-y-auto">
+        <Teleport to="body">
+        <div v-if="updateModal" class="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 w-full max-w-xl max-h-[85vh] overflow-y-auto">
                 <h2 class="text-lg font-semibold">Update Purchases</h2>
 
 
@@ -232,6 +235,7 @@
                 </form>
             </div>
         </div>
+        </Teleport>
 
     </main>
 </template>
@@ -382,7 +386,9 @@
                 }
             }).catch(err=>{
                 isLoader.value = false
-                if(err.response.status === 422){
+                // Point 5 (retour client) : message métier clair (caisse insuffisante),
+                // distinct des erreurs de validation classiques (champs manquants).
+                if (err.response?.status === 422 && err.response?.data?.errors) {
                     const errors = err.response.data.errors;
                     for (const key in errors) {
                         if (errors.hasOwnProperty(key)) {
@@ -390,7 +396,9 @@
                             msgInput.value[key] = errors[key][0];
                         }
                     }
-                }else{
+                } else if (err.response?.status === 422 && err.response?.data?.message) {
+                    Swal.fire('Opération refusée', err.response.data.message, 'warning')
+                } else {
                     Swal.fire(
                         'Error!',
                         'An error occurred while adding the currency purchase.',

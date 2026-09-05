@@ -31,8 +31,9 @@
             </div> <!-- end card -->
         </div>
 
-        <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center" style="z-index: 1000;">
-            <div class="bg-white rounded-lg p-6 w-full sm:w-3/4 md:w-2/3 lg:w-1/3 max-h-[90vh] lg:max-w-[50%] overflow-y-auto">
+        <Teleport to="body">
+        <div v-if="showModal" class="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 w-full max-w-xl max-h-[85vh] overflow-y-auto">
                 <h2 class="text-lg font-semibold">Add a currency</h2>
 
 
@@ -68,9 +69,11 @@
                 </form>
             </div>
         </div>
+        </Teleport>
 
-        <div v-if="updateModal" class="fixed inset-0 bg-black/50 flex items-center justify-center" style="z-index: 1000;">
-            <div class="bg-white rounded-lg p-6 w-full sm:w-3/4 md:w-2/3 lg:w-1/3 max-h-[90vh] lg:max-w-[50%] overflow-y-auto">
+        <Teleport to="body">
+        <div v-if="updateModal" class="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 w-full max-w-xl max-h-[85vh] overflow-y-auto">
                 <h2 class="text-lg font-semibold">Update a currency</h2>
 
 
@@ -106,6 +109,7 @@
                 </form>
             </div>
         </div>
+        </Teleport>
 
     </main>
 </template>

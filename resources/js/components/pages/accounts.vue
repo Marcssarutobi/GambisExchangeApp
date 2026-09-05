@@ -27,12 +27,13 @@
                         </div>
                     </div>
                 </div>
-                
+
             </div> <!-- end card -->
         </div>
 
-        <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center" style="z-index: 1000;">
-            <div class="bg-white rounded-lg p-6 w-full sm:w-3/4 md:w-2/3 lg:w-1/3 max-h-[90vh] lg:max-w-[50%] overflow-y-auto">
+        <Teleport to="body">
+        <div v-if="showModal" class="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 w-full max-w-xl max-h-[85vh]  overflow-y-auto">
                 <h2 class="text-lg font-semibold">Add a Accounts</h2>
 
 
@@ -46,7 +47,7 @@
                             </select>
                             <span v-if="isEmpty.client_id" class="text-danger">{{ msgInput.client_id }}</span>
                         </div>
-    
+
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Currency</label>
                             <select name="currency_id" id="currency_id" v-model="data.currency_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
@@ -79,9 +80,11 @@
                 </form>
             </div>
         </div>
+        </Teleport>
 
-        <div v-if="updateModal" class="fixed inset-0 bg-black/50 flex items-center justify-center" style="z-index: 1000;">
-            <div class="bg-white rounded-lg p-6 w-full sm:w-3/4 md:w-2/3 lg:w-1/3 max-h-[90vh] lg:max-w-[50%] overflow-y-auto">
+        <Teleport to="body">
+        <div v-if="updateModal" class="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 w-full max-w-xl max-h-[85vh] overflow-y-auto">
                 <h2 class="text-lg font-semibold">Update a accounts</h2>
 
 
@@ -95,7 +98,7 @@
                             </select>
                             <span v-if="isEmpty.client_id" class="text-danger">{{ msgInput.client_id }}</span>
                         </div>
-    
+
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Currency</label>
                             <select name="currency_id" id="currency_id" v-model="getAccount.currency_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
@@ -128,9 +131,11 @@
                 </form>
             </div>
         </div>
+        </Teleport>
 
-        <div v-if="historyModal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4" style="z-index: 1000;">
-            <div class="bg-white rounded-2xl shadow-xl p-6 w-full sm:w-3/4 md:w-2/3 lg:w-1/2 max-h-[90vh] lg:max-w-[85%] overflow-y-auto">
+        <Teleport to="body">
+        <div v-if="historyModal" class="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 w-full max-w-3xl max-h-[85vh] overflow-y-auto">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
                     <h2 class="text-lg font-semibold text-default-900">Historique du compte</h2>
                     <button @click="historyModal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
@@ -179,13 +184,13 @@
                     <div v-show="openAccordions[history.month]" class="px-4 py-3 border-t border-gray-200 bg-white text-sm text-gray-700">
 
                         <div class="flex justify-end mb-3">
-                            <button 
-                                @click="exportToExcel(history.month)" 
+                            <button
+                                @click="exportToExcel(history.month)"
                                 class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors">
                                 <i class="material-symbols-rounded text-base">download</i> Exporter en Excel
                             </button>
                         </div>
-                        
+
                         <div class="table-responsive">
                             <table class="min-w-full border border-gray-200">
                                 <thead class="bg-gray-100">
@@ -231,6 +236,7 @@
                 </div>
             </div>
         </div>
+        </Teleport>
 
     </main>
 </template>
@@ -260,7 +266,7 @@
     const msgInput = ref({})
     const isLoader = ref(false)
     const getAccount = ref({})
-    
+
     const showModal = ref(false)
     const updateModal = ref(false)
     const historyModal = ref(false)
@@ -348,8 +354,8 @@
             searchable: false,
             render: function (data, type, row) {
                 return `
-                    <button class="btn bg-emerald-50 text-emerald-700 hover:bg-emerald-100 me-2 rounded-md" onClick="CreditAccountFunction(${row.id})" title="Créditer"><i class="material-symbols-rounded">add_circle</i></button>
-                    <button class="btn bg-rose-50 text-rose-700 hover:bg-rose-100 me-3 rounded-md" onClick="DebitAccountFunction(${row.id})" title="Débiter"><i class="material-symbols-rounded">remove_circle</i></button>
+                    <button class="btn bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 me-2 rounded-md" onClick="CreditAccountFunction(${row.id})" title="Créditer"><i class="material-symbols-rounded text-base align-middle">add_circle</i> Créditer</button>
+                    <button class="btn bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 me-3 rounded-md" onClick="DebitAccountFunction(${row.id})" title="Débiter"><i class="material-symbols-rounded text-base align-middle">remove_circle</i> Débiter</button>
                     <button class="btn bg-white text-dark me-3 rounded-md shadow-sm" onClick="HistoryAccountFunction(${row.id})"><i class="material-symbols-rounded">history</i> History</button>
                     <button class="btn bg-primary text-white me-3 rounded-md shadow-sm" onClick="ShowAccountFunction(${row.id})"><i class="material-symbols-rounded">edit</i> Edit</button>
                     <button class="btn bg-danger text-white rounded-md shadow-sm" onClick="DeleteAccountFunction(${row.id})"><i class="material-symbols-rounded">delete</i> Delete</button>
@@ -368,7 +374,7 @@
         } catch (error) {
             console.error("Error fetching history:", error);
         }
-        
+
     }
 
     // Point 2 : boutons Créditer/Débiter -> ouvrent directement le formulaire d'opération,
@@ -450,7 +456,7 @@
                                 isEmpty.value[key] = true;
                             }
                         }
-                    } 
+                    }
                 })
             } catch (error) {
                 isLoader.value = false
@@ -466,7 +472,7 @@
                     console.error("Error adding account:", error);
                 }
             }
-            
+
         }
     }
 
@@ -550,10 +556,10 @@
                 }
             }
         })
-        
+
     }
 
-    
+
     async function exportToExcel(month) {
         const params = new URLSearchParams({ month });
         if (currentAccountId.value) params.append('account_id', currentAccountId.value);

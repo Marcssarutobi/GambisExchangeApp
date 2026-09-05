@@ -22,15 +22,20 @@
         <div class="grid xl:grid-cols-4 md:grid-cols-2 gap-6 mb-6">
             <div class="card group overflow-hidden transition-all duration-500 hover:shadow-lg hover:-translate-y-0.5">
                 <div class="card-body">
-                    <div class="flex items- justify-between">
-                        <div>
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0 flex-1">
                             <p class="text-xs tracking-wide font-semibold uppercase text-default-700 mb-3">Total Balance</p>
-                            <h4 v-if="balance.length === 0" class="font-semibold text-2xl text-default-700">0</h4>
-                            <h4 v-for="b in balance" :key="b.currency" class="font-semibold text-lg text-default-700">{{ b.total }} {{ b.currency }}</h4>
+                            <p v-if="balance.length === 0" class="font-semibold text-2xl text-default-700">0</p>
+                            <div v-else class="flex flex-wrap gap-1.5 max-h-16 overflow-y-auto pr-1">
+                                <span v-for="b in balance" :key="b.currency"
+                                    class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/10 text-primary text-sm font-semibold whitespace-nowrap">
+                                    {{ b.total }} <span class="text-xs opacity-70">{{ b.currency }}</span>
+                                </span>
+                            </div>
                         </div>
 
                         <div
-                            class="rounded-full flex justify-center items-center size-14 bg-primary/10 text-primary">
+                            class="rounded-full flex justify-center items-center size-14 bg-primary/10 text-primary shrink-0">
                             <i class="material-symbols-rounded text-2xl transition-all group-hover:fill-1">payments</i>
                         </div>
                     </div>
@@ -41,16 +46,21 @@
             <div
                 class="card group overflow-hidden transition-all duration-500 hover:shadow-lg hover:-translate-y-0.5">
                 <div class="card-body">
-                    <div class="flex items- justify-between">
-                        <div>
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0 flex-1">
                             <p class="text-xs tracking-wide font-semibold uppercase text-default-700 mb-3">
                                 Total Deposit / Day</p>
-                            <h4 v-if="deposit.length === 0" class="font-semibold text-2xl text-default-700">0</h4>
-                            <h4 v-for="d in deposit" :key="d.currency" class="font-semibold text-lg text-default-700">{{ d.total }} {{ d.currency }}</h4>
+                            <p v-if="deposit.length === 0" class="font-semibold text-2xl text-default-700">0</p>
+                            <div v-else class="flex flex-wrap gap-1.5 max-h-16 overflow-y-auto pr-1">
+                                <span v-for="d in deposit" :key="d.currency"
+                                    class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-secondary/10 text-secondary text-sm font-semibold whitespace-nowrap">
+                                    {{ d.total }} <span class="text-xs opacity-70">{{ d.currency }}</span>
+                                </span>
+                            </div>
                         </div>
 
                         <div
-                            class="rounded-full flex justify-center items-center size-14 bg-secondary/10 text-secondary">
+                            class="rounded-full flex justify-center items-center size-14 bg-secondary/10 text-secondary shrink-0">
                             <i class="material-symbols-rounded text-2xl transition-all group-hover:fill-1">arrow_upward</i>
                         </div>
                     </div>
@@ -61,15 +71,20 @@
             <div
                 class="card group overflow-hidden transition-all duration-500 hover:shadow-lg hover:-translate-y-0.5">
                 <div class="card-body">
-                    <div class="flex items- justify-between">
-                        <div>
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0 flex-1">
                             <p class="text-xs tracking-wide font-semibold uppercase text-default-700 mb-3"> Total Withdrawal / Day</p>
-                            <h4 v-if="withdrawal.length === 0" class="font-semibold text-2xl text-default-700">0</h4>
-                            <h4 v-for="w in withdrawal" :key="w.currency" class="font-semibold text-lg text-default-700">{{ w.total }} {{ w.currency }}</h4>
+                            <p v-if="withdrawal.length === 0" class="font-semibold text-2xl text-default-700">0</p>
+                            <div v-else class="flex flex-wrap gap-1.5 max-h-16 overflow-y-auto pr-1">
+                                <span v-for="w in withdrawal" :key="w.currency"
+                                    class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-warning/10 text-warning text-sm font-semibold whitespace-nowrap">
+                                    {{ w.total }} <span class="text-xs opacity-70">{{ w.currency }}</span>
+                                </span>
+                            </div>
                         </div>
 
                         <div
-                            class="rounded-full flex justify-center items-center size-14 bg-warning/10 text-warning">
+                            class="rounded-full flex justify-center items-center size-14 bg-warning/10 text-warning shrink-0">
                             <i
                                 class="material-symbols-rounded text-2xl transition-all group-hover:fill-1">arrow_downward</i>
                         </div>
