@@ -32,8 +32,8 @@
         </div>
 
         <Teleport to="body">
-        <div v-if="showModal" class="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 w-full max-w-xl max-h-[85vh] overflow-y-auto">
+        <div v-if="showModal" class="modal-overlay" style="position:fixed; top:0; right:0; bottom:0; left:0; z-index:1000; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; padding:1rem;">
+            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 overflow-y-auto" style="width:100%; max-width:576px; max-height:85vh;">
                 <h2 class="text-lg font-semibold">Add movements</h2>
 
 

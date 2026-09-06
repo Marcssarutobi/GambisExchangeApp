@@ -128,20 +128,62 @@ class CurrencyPurchasesController extends Controller
 
     public function edit($id, Request $request)
     {
-        $data = CurrencyPurchases::find($id);
+        $purchase = CurrencyPurchases::find($id);
 
-        if (!$data) {
+        if (!$purchase) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Purchase not found'
             ], 404);
         }
 
-        $data->update($request->all());
+        $validated = $request->validate([
+            'currency_id' => 'sometimes|required|exists:currencies,id',
+            'type' => 'sometimes|required|in:achat,vente',
+            'supplier' => 'nullable|string|max:255',
+            'amount_purchased' => 'sometimes|required|numeric|min:0',
+            'rate' => 'sometimes|required|numeric|min:0',
+            'rate_direction' => 'sometimes|required|in:multiply,divide',
+            'payment_currency_id' => 'nullable|exists:currencies,id',
+            'total_paid' => 'sometimes|required|numeric|min:0',
+        ]);
+
+        // Bug corrigé : la modification d'un achat/vente ne touchait jamais la caisse
+        // générale, ce qui désynchronisait silencieusement le solde réel. On applique
+        // désormais le même principe que pour les mouvements : annuler l'impact de
+        // l'ancienne version, puis appliquer celui de la nouvelle.
+        $updated = DB::transaction(function () use ($purchase, $validated) {
+            $old = $purchase->replicate(); // garde les valeurs d'origine avant update
+
+            if ($old->payment_currency_id) {
+                if ($old->type === 'achat') {
+                    CashRegisterService::record($old->payment_currency_id, 'purchase_in', 'in', (float) $old->total_paid, $purchase, 'Annulation avant modification de l\'achat #' . $purchase->id);
+                    CashRegisterService::record($old->currency_id, 'purchase_out', 'out', (float) $old->amount_purchased, $purchase, 'Annulation avant modification de l\'achat #' . $purchase->id);
+                } else {
+                    CashRegisterService::record($old->payment_currency_id, 'sale_out', 'out', (float) $old->total_paid, $purchase, 'Annulation avant modification de la vente #' . $purchase->id);
+                    CashRegisterService::record($old->currency_id, 'sale_in', 'in', (float) $old->amount_purchased, $purchase, 'Annulation avant modification de la vente #' . $purchase->id);
+                }
+            }
+
+            $purchase->update($validated);
+            $purchase->refresh();
+
+            if ($purchase->payment_currency_id) {
+                if ($purchase->type === 'achat') {
+                    CashRegisterService::record($purchase->payment_currency_id, 'purchase_out', 'out', (float) $purchase->total_paid, $purchase, 'Modification de l\'achat #' . $purchase->id);
+                    CashRegisterService::record($purchase->currency_id, 'purchase_in', 'in', (float) $purchase->amount_purchased, $purchase, 'Modification de l\'achat #' . $purchase->id);
+                } else {
+                    CashRegisterService::record($purchase->payment_currency_id, 'sale_in', 'in', (float) $purchase->total_paid, $purchase, 'Modification de la vente #' . $purchase->id);
+                    CashRegisterService::record($purchase->currency_id, 'sale_out', 'out', (float) $purchase->amount_purchased, $purchase, 'Modification de la vente #' . $purchase->id);
+                }
+            }
+
+            return $purchase;
+        });
 
         return response()->json([
             'status' => 'success',
-            'data' => $data
+            'data' => $updated
         ]);
     }
 

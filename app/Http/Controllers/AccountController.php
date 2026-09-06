@@ -92,7 +92,11 @@ class AccountController extends Controller
             ], 404);
         }
 
-        $account->update($request->all());
+        // Bug corrigé : cet endpoint permettait de modifier le solde ("balance") directement,
+        // sans passer par un mouvement ni toucher la caisse générale - une modification
+        // silencieuse et non tracée de l'argent. Le solde ne se modifie plus désormais que
+        // via un dépôt/retrait (MovementController), qui alimente la caisse et l'historique.
+        $account->update($request->except('balance'));
 
         return response()->json([
             'status' => 'success',

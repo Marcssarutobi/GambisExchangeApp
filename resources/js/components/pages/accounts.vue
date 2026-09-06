@@ -27,13 +27,13 @@
                         </div>
                     </div>
                 </div>
-
+                
             </div> <!-- end card -->
         </div>
 
         <Teleport to="body">
-        <div v-if="showModal" class="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 w-full max-w-xl max-h-[85vh]  overflow-y-auto">
+        <div v-if="showModal" class="modal-overlay" style="position:fixed; top:0; right:0; bottom:0; left:0; z-index:1000; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; padding:1rem;">
+            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 overflow-y-auto" style="width:100%; max-width:576px; max-height:85vh;">
                 <h2 class="text-lg font-semibold">Add a Accounts</h2>
 
 
@@ -47,7 +47,7 @@
                             </select>
                             <span v-if="isEmpty.client_id" class="text-danger">{{ msgInput.client_id }}</span>
                         </div>
-
+    
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Currency</label>
                             <select name="currency_id" id="currency_id" v-model="data.currency_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
@@ -83,8 +83,8 @@
         </Teleport>
 
         <Teleport to="body">
-        <div v-if="updateModal" class="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 w-full max-w-xl max-h-[85vh] overflow-y-auto">
+        <div v-if="updateModal" class="modal-overlay" style="position:fixed; top:0; right:0; bottom:0; left:0; z-index:1000; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; padding:1rem;">
+            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 overflow-y-auto" style="width:100%; max-width:576px; max-height:85vh;">
                 <h2 class="text-lg font-semibold">Update a accounts</h2>
 
 
@@ -98,7 +98,7 @@
                             </select>
                             <span v-if="isEmpty.client_id" class="text-danger">{{ msgInput.client_id }}</span>
                         </div>
-
+    
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Currency</label>
                             <select name="currency_id" id="currency_id" v-model="getAccount.currency_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
@@ -110,8 +110,8 @@
                     </div>
                     <div class="">
                         <label class="block text-sm font-medium text-gray-700">Balance</label>
-                        <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.balance}" placeholder="Entrez le solde" v-model="getAccount.balance">
-                        <span v-if="isEmpty.balance" class="text-danger">{{ msgInput.balance }}</span>
+                        <input type="text" disabled class="mt-1 block w-full border border-gray-300 rounded-md p-2 bg-gray-100 text-gray-500 cursor-not-allowed" v-model="getAccount.balance">
+                        <p class="text-xs text-gray-500 mt-1">Le solde ne se modifie plus ici : utilisez les boutons Créditer/Débiter (traçabilité + caisse générale).</p>
                     </div>
 
                     <div class="mt-4 flex justify-end gap-2">
@@ -134,8 +134,8 @@
         </Teleport>
 
         <Teleport to="body">
-        <div v-if="historyModal" class="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 w-full max-w-3xl max-h-[85vh] overflow-y-auto">
+        <div v-if="historyModal" class="modal-overlay" style="position:fixed; top:0; right:0; bottom:0; left:0; z-index:1000; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; padding:1rem;">
+            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 overflow-y-auto" style="width:100%; max-width:768px; max-height:85vh;">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
                     <h2 class="text-lg font-semibold text-default-900">Historique du compte</h2>
                     <button @click="historyModal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
@@ -184,13 +184,13 @@
                     <div v-show="openAccordions[history.month]" class="px-4 py-3 border-t border-gray-200 bg-white text-sm text-gray-700">
 
                         <div class="flex justify-end mb-3">
-                            <button
-                                @click="exportToExcel(history.month)"
+                            <button 
+                                @click="exportToExcel(history.month)" 
                                 class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors">
                                 <i class="material-symbols-rounded text-base">download</i> Exporter en Excel
                             </button>
                         </div>
-
+                        
                         <div class="table-responsive">
                             <table class="min-w-full border border-gray-200">
                                 <thead class="bg-gray-100">
@@ -266,7 +266,7 @@
     const msgInput = ref({})
     const isLoader = ref(false)
     const getAccount = ref({})
-
+    
     const showModal = ref(false)
     const updateModal = ref(false)
     const historyModal = ref(false)
@@ -374,7 +374,7 @@
         } catch (error) {
             console.error("Error fetching history:", error);
         }
-
+        
     }
 
     // Point 2 : boutons Créditer/Débiter -> ouvrent directement le formulaire d'opération,
@@ -456,7 +456,7 @@
                                 isEmpty.value[key] = true;
                             }
                         }
-                    }
+                    } 
                 })
             } catch (error) {
                 isLoader.value = false
@@ -472,7 +472,7 @@
                     console.error("Error adding account:", error);
                 }
             }
-
+            
         }
     }
 
@@ -556,10 +556,10 @@
                 }
             }
         })
-
+        
     }
 
-
+    
     async function exportToExcel(month) {
         const params = new URLSearchParams({ month });
         if (currentAccountId.value) params.append('account_id', currentAccountId.value);

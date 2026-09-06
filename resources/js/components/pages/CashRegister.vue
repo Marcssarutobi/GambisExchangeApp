@@ -140,7 +140,28 @@ function formatDate(value) {
 const historyColumns = [
     { title: 'Devise', data: null, render: (data, type, row) => row.cash_register?.currency?.code ?? '-' },
     { title: 'Type', data: null, render: (data, type, row) => typeLabel(row.type) },
-    { title: 'Montant', data: null, render: (data, type, row) => Number(row.amount).toLocaleString('fr-FR') },
+    {
+        title: 'Sens',
+        data: null,
+        render: (data, type, row) => {
+            // La direction réelle (entrée/sortie) est déduite du solde avant/après,
+            // plus fiable que le "type" seul (un ajustement peut être dans les deux sens).
+            const isIn = Number(row.balance_after) >= Number(row.balance_before);
+            return isIn
+                ? `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700"><i class="material-symbols-rounded text-sm align-middle">arrow_downward</i> Entrée</span>`
+                : `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700"><i class="material-symbols-rounded text-sm align-middle">arrow_upward</i> Sortie</span>`;
+        }
+    },
+    {
+        title: 'Montant',
+        data: null,
+        render: (data, type, row) => {
+            const isIn = Number(row.balance_after) >= Number(row.balance_before);
+            const sign = isIn ? '+' : '−';
+            const color = isIn ? 'color:#047857;' : 'color:#be123c;';
+            return `<span style="${color} font-weight:600;">${sign} ${Number(row.amount).toLocaleString('fr-FR')}</span>`;
+        }
+    },
     { title: 'Solde avant', data: null, render: (data, type, row) => Number(row.balance_before).toLocaleString('fr-FR') },
     { title: 'Solde après', data: null, render: (data, type, row) => Number(row.balance_after).toLocaleString('fr-FR') },
     { title: 'Note', data: null, render: (data, type, row) => row.note ?? '-' },
