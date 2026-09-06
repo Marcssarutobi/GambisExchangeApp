@@ -33,7 +33,8 @@ class CashRegisterService
         string $direction,
         float $amount,
         ?Model $reference = null,
-        ?string $note = null
+        ?string $note = null,
+        ?\DateTimeInterface $occurredAt = null
     ): CashMovement {
         $register = CashRegister::forCurrency($currencyId);
         $register->lockForUpdate()->find($register->id);
@@ -48,7 +49,7 @@ class CashRegisterService
 
         $balanceAfter = (float) $register->fresh()->balance;
 
-        return CashMovement::create([
+        $data = [
             'cash_register_id' => $register->id,
             'type'             => $type,
             'amount'           => $amount,
@@ -57,6 +58,15 @@ class CashRegisterService
             'reference_type'   => $reference ? get_class($reference) : null,
             'reference_id'     => $reference?->id,
             'note'             => $note,
-        ]);
+        ];
+
+        // Permet de rejouer un mouvement passé (synchronisation des données existantes)
+        // en conservant sa vraie date, plutôt que la date du jour.
+        if ($occurredAt) {
+            $data['created_at'] = $occurredAt;
+            $data['updated_at'] = $occurredAt;
+        }
+
+        return CashMovement::create($data);
     }
 }

@@ -40,7 +40,7 @@ class CashRegisterController extends Controller
             'to' => 'nullable|date',
         ]);
 
-        $query = CashMovement::with('cashRegister.currency')->orderBy('created_at', 'desc');
+        $query = CashMovement::with('cashRegister.currency')->orderBy('id', 'desc');
 
         if ($request->filled('currency_id')) {
             $query->whereHas('cashRegister', function ($q) use ($request) {
