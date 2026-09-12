@@ -1,0 +1,13 @@
+diff a/resources/js/components/router/index.js b/resources/js/components/router/index.js	(rejected hunks)
+@@ -22,6 +22,11 @@ const routes = [
+                 component: () => import('../pages/accounts.vue'),
+                 meta: { role: ['admin', 'caissier'] }
+             },
++            {
++                path: 'customer/:id/accounts',
++                component: () => import('../pages/customerAccounts.vue'),
++                meta: { role: ['admin', 'caissier'] }
++            },
+             {
+                 path: 'exchange',
+                 component: () => import('../pages/exchange.vue'),

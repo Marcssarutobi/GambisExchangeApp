@@ -1,0 +1,38 @@
+diff a/resources/js/components/pages/customer.vue b/resources/js/components/pages/customer.vue	(rejected hunks)
+@@ -148,10 +148,12 @@
+ <script setup>
+ 
+     import { onMounted, ref } from 'vue';
++    import { useRouter } from 'vue-router';
+     import DataTable from '../layout/Datatable.vue';
+     import { deleteData, getData, getSingleData, postData, putData } from '../plugins/api';
+     import Swal from 'sweetalert2';
+ 
++    const router = useRouter();
+     const allClients = ref([]);
+     const data = ref({
+         nom: '',
+@@ -225,6 +227,7 @@
+             searchable: false,
+             render: function (data, type, row) {
+                 return `
++                    <button class="btn bg-white text-dark me-3" onClick="GoToAccounts(${row.id})"><i class="fas fa-wallet"></i> Comptes</button>
+                     <button class="btn bg-primary text-white me-3" onClick="ShowClient(${row.id})"><i class="fas fa-edit"></i> Edit</button>
+                     <button class="btn bg-danger text-white" onClick="DeleteClient(${row.id})"><i class="fas fa-trash"></i> Delete</button>
+                 `;
+@@ -336,10 +339,15 @@
+         })
+     }
+ 
++    function GoToAccounts(id) {
++        router.push(`/customer/${id}/accounts`);
++    }
++
+     onMounted(() => {
+         AllCustomer();
+         window.ShowClient = ShowClient
+         window.DeleteClient = DeleteClient
++        window.GoToAccounts = GoToAccounts
+     });
+ 
+ </script>

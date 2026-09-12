@@ -57,7 +57,7 @@ class ClientController extends Controller
     }
 
     public function show($id){
-        $client = Client::find($id);
+        $client = Client::with('accounts.currency')->find($id);
         if (!$client) {
             return response()->json([
                 'status' => 'error',

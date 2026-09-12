@@ -1,6 +1,6 @@
 <template>
     <div class="table-responsive">
-        <DataTable :data="data" :columns="columns" :options="{responsive: true,autoWidth:false,language:{paginate:{previous:'Previous',next:'Next'}}}" class="table table-center table-hover">
+        <DataTable :data="data" :columns="columns" :options="{responsive: true,autoWidth:false,order:[],language:{paginate:{previous:'Previous',next:'Next'}}}" class="table table-center table-hover">
             <thead class=" bg-dark text-white"></thead>
 
         </DataTable>
