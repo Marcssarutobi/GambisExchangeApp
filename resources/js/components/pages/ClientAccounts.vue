@@ -59,6 +59,11 @@
                         <i class="material-symbols-rounded">remove_circle</i> Débiter
                     </button>
                 </div>
+
+                <button @click="goToHistory(account)"
+                    class="mt-2 w-full flex items-center justify-center gap-2 rounded-md border border-primary text-primary hover:bg-primary/10 text-sm font-medium py-2 transition-all">
+                    <i class="material-symbols-rounded">history</i> Historique &amp; export PDF
+                </button>
             </div>
         </div>
     </main>
@@ -93,6 +98,11 @@ async function loadAccounts() {
 // avec le compte et le type déjà pré-remplis.
 function goToOperation(account, type) {
     router.push({ path: '/exchange', query: { account_id: account.id, type } });
+}
+
+// Historique + export PDF filtrable par date, pour ce compte précis.
+function goToHistory(account) {
+    router.push({ path: `/customer/${route.params.id}/accounts/history`, query: { account: account.id } });
 }
 
 onMounted(() => {

@@ -23,6 +23,11 @@ const routes = [
                 meta: { role: ['admin', 'caissier'] } // Point 1 : comptes d'un client
             },
             {
+                path: 'customer/:id/accounts/history',
+                component: () => import('../pages/customerAccounts.vue'),
+                meta: { role: ['admin', 'caissier'] } // Historique + export PDF d'un compte
+            },
+            {
                 path: 'account',
                 component: () => import('../pages/accounts.vue'),
                 meta: { role: ['admin', 'caissier'] }

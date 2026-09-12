@@ -163,6 +163,49 @@ class MovementController extends Controller
     }
 
     /**
+     * Historique des mouvements d'un compte, filtrable par période (from/to),
+     * trié du plus récent au plus ancien. Utilisé par la page
+     * /customer/{id}/accounts/history pour l'affichage et l'export PDF.
+     */
+    public function historyByAccount(Request $request, $accountId)
+    {
+        $account = Account::with(['client', 'currency'])->find($accountId);
+
+        if (!$account) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Compte introuvable',
+            ], 404);
+        }
+
+        $query = Movement::where('account_id', $accountId)->with(['currency']);
+
+        if ($request->filled('from')) {
+            $query->whereDate('created_at', '>=', $request->from);
+        }
+
+        if ($request->filled('to')) {
+            $query->whereDate('created_at', '<=', $request->to);
+        }
+
+        // Trié du plus récent au plus ancien, comme demandé
+        $movements = $query->orderBy('created_at', 'desc')->get();
+
+        // Solde d'ouverture = solde juste avant le mouvement le plus ancien de la période filtrée
+        $oldestInRange = $movements->last();
+        $openingBalance = $oldestInRange ? $oldestInRange->balance_before : (float) $account->balance;
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'account'         => $account,
+                'opening_balance' => $openingBalance,
+                'movements'       => $movements,
+            ],
+        ]);
+    }
+
+    /**
      * Point 6 : export avec filtre de dates ("du ... au ..."), en plus du filtre par mois
      * conservé pour compatibilité. Filtre optionnel par compte.
      *

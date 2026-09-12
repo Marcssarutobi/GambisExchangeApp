@@ -17,6 +17,12 @@
         </div>
         <!-- Page Title End -->
 
+        <div class="mb-4">
+            <RouterLink :to="`/customer/${clientId}/accounts`" class="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">
+                ← Retour aux comptes
+            </RouterLink>
+        </div>
+
         <!-- Infos client -->
         <div class="card p-3 mb-4">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
@@ -190,7 +196,12 @@ async function fetchClient() {
         client.value = res.data.data;
         accounts.value = client.value.accounts ?? [];
 
-        if (accounts.value.length) {
+        const queryAccountId = route.query.account ? Number(route.query.account) : null;
+        const matchesAnAccount = queryAccountId && accounts.value.some(acc => acc.id === queryAccountId);
+
+        if (matchesAnAccount) {
+            selectedAccountId.value = queryAccountId;
+        } else if (accounts.value.length) {
             selectedAccountId.value = accounts.value[0].id;
         }
     } catch (error) {
