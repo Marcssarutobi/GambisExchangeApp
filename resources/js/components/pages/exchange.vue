@@ -40,24 +40,13 @@
 
                 <form class="mt-3 space-y-4" @submit.prevent="AddMovementFunction">
 
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <div class="">
-                            <label class="block text-sm font-medium text-gray-700">Accounts</label>
-                            <select name="account_id" id="account_id" v-model="data.account_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                                <option value="">Select Account</option>
-                                <option v-for="account in allAccount" :key="account.id" :value="account.id">{{ account.client?.nom }} {{ account.client?.prenom }} ({{ account.currency?.code }})</option>
-                            </select>
-                            <span v-if="isEmpty.account_id" class="text-danger">{{ msgInput.account_id }}</span>
-                        </div>
-    
-                        <div class="">
-                            <label class="block text-sm font-medium text-gray-700">Currency</label>
-                            <select name="currency_id" id="currency_id" v-model="data.currency_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                                <option value="">Select Currency</option>
-                                <option v-for="currency in allCurrency" :key="currency.id" :value="currency.id">{{ currency.name }}</option>
-                            </select>
-                            <span v-if="isEmpty.currency_id" class="text-danger">{{ msgInput.currency_id }}</span>
-                        </div>
+                    <div class="">
+                        <label class="block text-sm font-medium text-gray-700">Accounts</label>
+                        <select name="account_id" id="account_id" v-model="data.account_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                            <option value="">Select Account</option>
+                            <option v-for="account in allAccount" :key="account.id" :value="account.id">{{ account.client?.nom }} {{ account.client?.prenom }} ({{ account.currency?.code }})</option>
+                        </select>
+                        <span v-if="isEmpty.account_id" class="text-danger">{{ msgInput.account_id }}</span>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -75,18 +64,27 @@
                             <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.amount}" placeholder="Enter Amount" v-model="data.amount">
                             <span v-if="isEmpty.amount" class="text-danger">{{ msgInput.amount }}</span>
                         </div>
-                     </div>
+                    </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="">
+                            <label class="block text-sm font-medium text-gray-700">Currency</label>
+                            <select name="currency_id" id="currency_id" v-model="data.currency_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                                <option value="">Select Currency</option>
+                                <option v-for="currency in allCurrency" :key="currency.id" :value="currency.id">{{ currency.name }}</option>
+                            </select>
+                            <span v-if="isEmpty.currency_id" class="text-danger">{{ msgInput.currency_id }}</span>
+                        </div>
                         <div class="">
                             <label class="block text-sm font-medium text-gray-700">Rate</label>
                             <input type="number" min="0"   step="0.01" v-model="data.rate" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
                         </div>
-                        <div class="">
-                            <label class="block text-sm font-medium text-gray-700">Final Amount</label>
-                            <input  disabled type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.final_amount}" placeholder="Final Amount" v-model="data.final_amount">
-                            <span v-if="isEmpty.final_amount" class="text-danger">{{ msgInput.final_amount }}</span>
-                        </div>
+                    </div>
+
+                    <div class="">
+                        <label class="block text-sm font-medium text-gray-700">Final Amount</label>
+                        <input  disabled type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.final_amount}" placeholder="Final Amount" v-model="data.final_amount">
+                        <span v-if="isEmpty.final_amount" class="text-danger">{{ msgInput.final_amount }}</span>
                     </div>
 
                     <!--
