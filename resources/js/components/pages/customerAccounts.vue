@@ -116,25 +116,25 @@
                             </td>
                             <td class="px-4 py-2 text-right">
                                 <span v-if="mvt.type === 'withdraw'" class="text-red-600 font-semibold">
-                                    {{ formatAmount(mvt.final_amount) }}
+                                    {{ formatAmount(mvt.final_amount) }} {{ accountCurrency }}
                                 </span>
                             </td>
                             <td class="px-4 py-2 text-right">
                                 <span v-if="mvt.type === 'deposit'" class="text-green-600 font-semibold">
-                                    {{ formatAmount(mvt.final_amount) }}
+                                    {{ formatAmount(mvt.final_amount) }} {{ accountCurrency }}
                                 </span>
                             </td>
                             <td class="px-4 py-2 text-right font-semibold"
-                                :class="mvt.balance_after >= 0 ? 'text-green-600' : 'text-red-600'">
-                                {{ formatAmount(Math.abs(mvt.balance_after)) }} {{ mvt.balance_after >= 0 ? 'CR' : 'DR' }}
+                                :class="mvt.balance_after >= 0 ? 'text-blue-600' : 'text-red-600'">
+                                {{ formatAmount(mvt.balance_after) }} {{ accountCurrency }}
                             </td>
                         </tr>
 
                         <tr v-if="movements.length" class="bg-gray-100 font-semibold">
                             <td class="px-4 py-2" colspan="5">Solde d'ouverture de la période</td>
                             <td class="px-4 py-2 text-right"
-                                :class="openingBalance >= 0 ? 'text-green-600' : 'text-red-600'">
-                                {{ formatAmount(Math.abs(openingBalance)) }} {{ openingBalance >= 0 ? 'CR' : 'DR' }}
+                                :class="openingBalance >= 0 ? 'text-blue-600' : 'text-red-600'">
+                                {{ formatAmount(openingBalance) }} {{ accountCurrency }}
                             </td>
                         </tr>
                     </tbody>
@@ -148,7 +148,7 @@
 
 <script setup>
 
-import { onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { getData, getSingleData } from '../plugins/api';
 import pdfMake from 'pdfmake/build/pdfmake';
@@ -165,6 +165,12 @@ const accounts = ref([]);
 const selectedAccountId = ref(null);
 const movements = ref([]);
 const openingBalance = ref(0);
+
+// Devise du compte sélectionné (ex: XOF, NRN)
+const accountCurrency = computed(() => {
+    const account = accounts.value.find(acc => acc.id === selectedAccountId.value);
+    return account?.currency?.code ?? '';
+});
 
 const loadingAccounts = ref(false);
 const loadingHistory = ref(false);
@@ -269,20 +275,20 @@ function exportToPDF() {
             `MVT-${mvt.id}`,
             mvt.performed_by ?? (mvt.type === 'deposit' ? 'Dépôt' : 'Retrait'),
             {
-                text: mvt.type === 'withdraw' ? formatAmount(mvt.final_amount) : '',
+                text: mvt.type === 'withdraw' ? `${formatAmount(mvt.final_amount)} ${accountCurrency.value}` : '',
                 color: 'red',
                 bold: true,
                 alignment: 'right',
             },
             {
-                text: mvt.type === 'deposit' ? formatAmount(mvt.final_amount) : '',
+                text: mvt.type === 'deposit' ? `${formatAmount(mvt.final_amount)} ${accountCurrency.value}` : '',
                 color: 'green',
                 bold: true,
                 alignment: 'right',
             },
             {
-                text: `${formatAmount(Math.abs(mvt.balance_after))} ${mvt.balance_after >= 0 ? 'CR' : 'DR'}`,
-                color: mvt.balance_after >= 0 ? 'green' : 'red',
+                text: `${formatAmount(mvt.balance_after)} ${accountCurrency.value}`,
+                color: mvt.balance_after >= 0 ? '#2563eb' : 'red',
                 bold: true,
                 alignment: 'right',
             },
@@ -293,10 +299,10 @@ function exportToPDF() {
         { text: "Solde d'ouverture de la période", colSpan: 5, bold: true },
         {}, {}, {}, {},
         {
-            text: `${formatAmount(Math.abs(openingBalance.value))} ${openingBalance.value >= 0 ? 'CR' : 'DR'}`,
+            text: `${formatAmount(openingBalance.value)} ${accountCurrency.value}`,
             bold: true,
             alignment: 'right',
-            color: openingBalance.value >= 0 ? 'green' : 'red',
+            color: openingBalance.value >= 0 ? '#2563eb' : 'red',
         },
     ]);
 
