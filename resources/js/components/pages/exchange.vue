@@ -230,6 +230,11 @@
         )
     })
 
+    // Échappe le HTML (les noms de clients sont injectés dans du HTML par DataTable)
+    const escapeHtml = (str) => String(str ?? '')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
     const columns = [
         {
             title: `
@@ -249,6 +254,15 @@
             render: (data, type, row) => {
                 if (!row.account) return "";
                 return `<span style="font-weight: bold;">${row.account.code}</span>`;
+            }
+        },
+        {
+            title: 'Client',
+            data: 'account.client.nom',
+            render: (data, type, row) => {
+                const client = row.account?.client;
+                if (!client) return "";
+                return escapeHtml(`${client.nom ?? ''} ${client.prenom ?? ''}`.trim());
             }
         },
         {
@@ -299,7 +313,7 @@
                 if (row.balance_before < 0) {
                     return `<span style="color:red;font-weight:bold">${value} ${currency}</span>`;
                 }
-                return `${value} ${currency}`;
+                return `<span style="color:#2563eb;font-weight:bold">${value} ${currency}</span>`;
             }
         },
         {
@@ -312,7 +326,7 @@
                 if (row.balance_after < 0) {
                     return `<span style="color:red;font-weight:bold">${value} ${currency}</span>`;
                 }
-                return `${value} ${currency}`;
+                return `<span style="color:#2563eb;font-weight:bold">${value} ${currency}</span>`;
             }
         },
         {

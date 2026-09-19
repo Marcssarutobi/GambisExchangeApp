@@ -15,7 +15,7 @@ class MovementController extends Controller
 {
     public function index()
     {
-        $data = Movement::with('account.currency', 'currency')->orderBy('id', 'desc')->get();
+        $data = Movement::with('account.currency', 'account.client', 'currency')->orderBy('id', 'desc')->get();
         return response()->json([
             'status' => 'success',
             'data' => $data

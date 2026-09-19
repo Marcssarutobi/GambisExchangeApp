@@ -195,6 +195,7 @@
                             <table class="min-w-full border border-gray-200">
                                 <thead class="bg-gray-100">
                                 <tr>
+                                    <th class="px-4 py-2 text-left text-gray-700">Client</th>
                                     <th class="px-4 py-2 text-left text-gray-700">Description</th>
                                     <th class="px-4 py-2 text-left text-gray-700">Type</th>
                                     <th class="px-4 py-2 text-left text-gray-700">Amount</th>
@@ -206,6 +207,7 @@
                                 </thead>
                                 <tbody>
                                     <tr :class="index % 2 === 0 ? 'bg-white' : 'bg-gray-50'" v-for="(data,index) in history.history" :key="index">
+                                        <td class="px-4 py-2">{{ data.account?.client?.nom }} {{ data.account?.client?.prenom }}</td>
                                         <td class="px-4 py-2" style="font-weight: bold;">{{ data.performed_by ?? '-' }}</td>
                                         <td class="px-4 py-2" style="text-transform: capitalize;">{{ data.type }}</td>
                                         <td class="px-4 py-2">{{  Number(data.amount).toLocaleString("fr-FR") }} {{ data.currency?.code }}</td>
@@ -216,7 +218,7 @@
                                             </span>
                                         </td>
                                         <td class="px-4 py-2">
-                                            <span :style="data.balance_after < 0 ? 'color:red; font-weight:bold' : ''">
+                                            <span :style="data.balance_after < 0 ? 'color:red; font-weight:bold' : 'color:#2563eb; font-weight:bold'">
                                                 {{ Number(data.balance_after).toLocaleString('fr-FR') }} {{ data.account?.currency?.code }}
                                             </span>
                                         </td>
