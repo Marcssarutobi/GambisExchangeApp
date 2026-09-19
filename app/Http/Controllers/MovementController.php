@@ -15,7 +15,7 @@ class MovementController extends Controller
 {
     public function index()
     {
-        $data = Movement::with('account.currency', 'account.client', 'counterpartAccount', 'currency')->orderBy('id', 'desc')->get();
+        $data = Movement::with('account.currency', 'account.client', 'counterpartAccount.currency', 'counterpartAccount.client', 'currency')->orderBy('id', 'desc')->get();
         return response()->json([
             'status' => 'success',
             'data' => $data
@@ -138,7 +138,7 @@ class MovementController extends Controller
     public function history($accountId)
     {
         $movements = Movement::where('account_id', $accountId)
-            ->with(['account.client', 'account.currency', 'currency'])
+            ->with(['account.client', 'account.currency', 'counterpartAccount.currency', 'counterpartAccount.client', 'currency'])
             ->orderBy('created_at', 'asc')
             ->get();
 
@@ -178,7 +178,8 @@ class MovementController extends Controller
             ], 404);
         }
 
-        $query = Movement::where('account_id', $accountId)->with(['currency']);
+        $query = Movement::where('account_id', $accountId)
+            ->with(['currency', 'counterpartAccount.currency', 'counterpartAccount.client']);
 
         if ($request->filled('from')) {
             $query->whereDate('created_at', '>=', $request->from);

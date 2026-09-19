@@ -227,6 +227,7 @@
     import DataTable from '../layout/Datatable.vue';
     import { deleteData, getData, getSingleData, postData, putData } from '../plugins/api';
     import Swal from 'sweetalert2';
+    import { rateWithDirection, transferConversion } from '../plugins/transfer';
 
     const route = useRoute();
 
@@ -438,10 +439,15 @@
             data: 'type',
             render: (data, type, row) => {
                 if (row.transfer_ref) {
-                    const other = escapeHtml(row.counterpart_account?.code ?? '');
+                    const other = row.counterpart_account;
+                    const otherName = other?.client ? `${other.client.nom ?? ''} ${other.client.prenom ?? ''}`.trim() : '';
+                    const otherLabel = escapeHtml([other?.code, otherName].filter(Boolean).join(' — '));
+                    // Détail de la conversion (devises, taux, × ou ÷) quand les comptes ont des devises différentes
+                    const conversion = transferConversion(row, row.account?.currency?.code);
+                    const conversionHtml = conversion ? `<br><small style="color:#6b7280;">${escapeHtml(conversion)}</small>` : '';
                     return row.type === 'withdraw'
-                        ? `<span class="badge text-white p-1 rounded" style="background:#2563eb;">Transfer out</span><br><small>→ ${other}</small>`
-                        : `<span class="badge text-white p-1 rounded" style="background:#0891b2;">Transfer in</span><br><small>← ${other}</small>`;
+                        ? `<span class="badge text-white p-1 rounded" style="background:#2563eb;">Transfer out</span><br><small>→ ${otherLabel}</small>${conversionHtml}`
+                        : `<span class="badge text-white p-1 rounded" style="background:#0891b2;">Transfer in</span><br><small>← ${otherLabel}</small>${conversionHtml}`;
                 }
                 if (row.type === 'deposit') {
                     return `<span class="badge bg-success text-white p-1 rounded">Deposit</span>`;
@@ -465,7 +471,8 @@
             data: 'rate',
             render: (data, type, row) => {
                 if (!row.rate) return "";
-                return `${row.rate} ${row.account?.currency?.code}`;
+                // Taux sans zéros inutiles, avec son sens : "× 2,35" ou "÷ 2,35"
+                return escapeHtml(rateWithDirection(row));
             }
         },
         {

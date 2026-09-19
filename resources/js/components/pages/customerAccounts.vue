@@ -112,7 +112,9 @@
                             <td class="px-4 py-2">{{ formatDateTime(mvt.created_at) }}</td>
                             <td class="px-4 py-2">MVT-{{ mvt.id }}</td>
                             <td class="px-4 py-2">
-                                {{ mvt.performed_by ?? (mvt.type === 'deposit' ? 'Dépôt' : 'Retrait') }}
+                                <div>{{ mvt.performed_by ?? (mvt.type === 'deposit' ? 'Dépôt' : 'Retrait') }}</div>
+                                <div v-if="transferLabel(mvt)" class="text-xs" style="color:#2563eb;">{{ transferLabel(mvt) }}</div>
+                                <div v-if="transferConversion(mvt, accountCurrency)" class="text-xs text-gray-500">{{ transferConversion(mvt, accountCurrency) }}</div>
                             </td>
                             <td class="px-4 py-2 text-right">
                                 <span v-if="mvt.type === 'withdraw'" class="text-red-600 font-semibold">
@@ -151,6 +153,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { getData, getSingleData } from '../plugins/api';
+import { transferLabel, transferConversion } from '../plugins/transfer';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 
@@ -273,7 +276,13 @@ function exportToPDF() {
         body.push([
             formatDateTime(mvt.created_at),
             `MVT-${mvt.id}`,
-            mvt.performed_by ?? (mvt.type === 'deposit' ? 'Dépôt' : 'Retrait'),
+            {
+                stack: [
+                    { text: mvt.performed_by ?? (mvt.type === 'deposit' ? 'Dépôt' : 'Retrait') },
+                    ...(transferLabel(mvt) ? [{ text: transferLabel(mvt), fontSize: 8, color: '#2563eb' }] : []),
+                    ...(transferConversion(mvt, accountCurrency.value) ? [{ text: transferConversion(mvt, accountCurrency.value), fontSize: 8, color: '#6b7280' }] : []),
+                ],
+            },
             {
                 text: mvt.type === 'withdraw' ? `${formatAmount(mvt.final_amount)} ${accountCurrency.value}` : '',
                 color: 'red',

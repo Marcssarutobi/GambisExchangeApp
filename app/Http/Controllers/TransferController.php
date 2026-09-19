@@ -87,8 +87,10 @@ class TransferController extends Controller
                     'account_id'             => $from->id,
                     'type'                   => 'withdraw',
                     'amount'                 => $amount,
-                    'rate'                   => null,
-                    'rate_direction'         => null,
+                    // Taux et sens conservés aussi sur le retrait (information/affichage) :
+                    // final_amount reste le montant débité, dans la devise du compte source.
+                    'rate'                   => $rate,
+                    'rate_direction'         => $rateDirection,
                     'final_amount'           => $amount,
                     'currency_id'            => $from->currency_id,
                     'performed_by'           => $request->performed_by,

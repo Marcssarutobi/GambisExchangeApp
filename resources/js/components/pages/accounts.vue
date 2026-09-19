@@ -208,10 +208,14 @@
                                 <tbody>
                                     <tr :class="index % 2 === 0 ? 'bg-white' : 'bg-gray-50'" v-for="(data,index) in history.history" :key="index">
                                         <td class="px-4 py-2">{{ data.account?.client?.nom }} {{ data.account?.client?.prenom }}</td>
-                                        <td class="px-4 py-2" style="font-weight: bold;">{{ data.performed_by ?? '-' }}</td>
+                                        <td class="px-4 py-2">
+                                            <div style="font-weight: bold;">{{ data.performed_by ?? '-' }}</div>
+                                            <div v-if="transferLabel(data)" class="text-xs" style="color:#2563eb;">{{ transferLabel(data) }}</div>
+                                            <div v-if="transferConversion(data, data.account?.currency?.code)" class="text-xs text-gray-500">{{ transferConversion(data, data.account?.currency?.code) }}</div>
+                                        </td>
                                         <td class="px-4 py-2" style="text-transform: capitalize;">{{ data.type }}</td>
                                         <td class="px-4 py-2">{{  Number(data.amount).toLocaleString("fr-FR") }} {{ data.currency?.code }}</td>
-                                        <td class="px-4 py-2">{{ data.rate ?? '-' }}</td>
+                                        <td class="px-4 py-2">{{ rateWithDirection(data) || '-' }}</td>
                                         <td class="px-4 py-2">
                                             <span :style="data.final_amount < 0 ? 'color:red; font-weight:bold' : ''">
                                                 {{ Number(data.final_amount).toLocaleString('fr-FR') }} {{ data.account?.currency?.code }}
@@ -250,6 +254,7 @@
     import { deleteData, getData, getSingleData, postData, putData } from '../plugins/api';
     import Swal from 'sweetalert2';
     import * as XLSX from 'xlsx'
+    import { rateWithDirection, transferLabel, transferConversion } from '../plugins/transfer';
 
     const router = useRouter();
     const currentAccountId = ref(null); // compte actuellement ouvert dans la modale d'historique
