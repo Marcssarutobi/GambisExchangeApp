@@ -9,6 +9,7 @@ use App\Http\Controllers\CurrencyPurchasesController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExchangerateController;
 use App\Http\Controllers\MovementController;
+use App\Http\Controllers\TransferController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -82,6 +83,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/movements/history/{accountId}', [MovementController::class, 'history']);
     Route::get('/movements/account/{accountId}', [MovementController::class, 'historyByAccount']);
     Route::post('/addmovements', [MovementController::class, 'store']);
+    Route::post('/transfers', [TransferController::class, 'store']);
     Route::put('/updatemovements/{id}', [MovementController::class, 'update']);
     Route::delete('/deletemovements/{id}', [MovementController::class, 'destroy']);
     

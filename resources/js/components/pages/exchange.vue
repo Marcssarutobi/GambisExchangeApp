@@ -18,6 +18,7 @@
         <div class="col-lg-12 mt-8">
             <div class="card overflow-hidden p-3">
                 <div class="card-header text-end">
+                    <button type="button" @click="openTransferModal" class="btn btn-lg bg-white text-dark rounded-md shadow-sm me-2"><i class="material-symbols-rounded me-1">sync_alt</i> Transfer</button>
                     <button type="button" @click="showModal = true" class="btn btn-lg bg-primary text-white rounded-md shadow-sm"><i class="material-symbols-rounded me-1">swap_horiz</i> Add Exchanges</button>
                 </div>
                 <div class="overflow-x-auto">
@@ -131,6 +132,92 @@
         </div>
         </Teleport>
 
+        <!-- Transfert de compte à compte -->
+        <Teleport to="body">
+        <div v-if="showTransferModal" class="modal-overlay" style="position:fixed; top:0; right:0; bottom:0; left:0; z-index:1000; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; padding:1rem;">
+            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 overflow-y-auto" style="width:100%; max-width:576px; max-height:85vh;">
+                <h2 class="text-lg font-semibold">Transfert entre comptes</h2>
+
+                <form class="mt-3 space-y-4" @submit.prevent="submitTransfer">
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Compte source (débité)</label>
+                        <select v-model="transfer.from_account_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border-red-500': transferErrors.from_account_id}">
+                            <option value="">Select Account</option>
+                            <option v-for="account in allAccount" :key="account.id" :value="account.id">
+                                {{ account.code }} — {{ account.client?.nom }} {{ account.client?.prenom }} ({{ account.currency?.code }})
+                            </option>
+                        </select>
+                        <p v-if="fromAccount" class="text-xs text-gray-500 mt-1">
+                            Solde disponible :
+                            <span class="font-semibold" style="color:#2563eb;">{{ formatMoney(fromAccount.balance) }} {{ fromAccount.currency?.code }}</span>
+                        </p>
+                        <span v-if="transferErrors.from_account_id" class="text-danger">{{ transferErrors.from_account_id }}</span>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Compte destination (crédité)</label>
+                        <select v-model="transfer.to_account_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border-red-500': transferErrors.to_account_id}">
+                            <option value="">Select Account</option>
+                            <option v-for="account in destinationAccounts" :key="account.id" :value="account.id">
+                                {{ account.code }} — {{ account.client?.nom }} {{ account.client?.prenom }} ({{ account.currency?.code }})
+                            </option>
+                        </select>
+                        <span v-if="transferErrors.to_account_id" class="text-danger">{{ transferErrors.to_account_id }}</span>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">
+                            Montant<span v-if="fromAccount"> ({{ fromAccount.currency?.code }})</span>
+                        </label>
+                        <input type="text" inputmode="decimal" v-model="transfer.amount" placeholder="Enter Amount" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border-red-500': transferErrors.amount}">
+                        <span v-if="transferErrors.amount" class="text-danger">{{ transferErrors.amount }}</span>
+                    </div>
+
+                    <!-- Conversion : uniquement si les devises des deux comptes diffèrent -->
+                    <div v-if="needsConversion" class="rounded-lg border border-gray-200 bg-gray-50 p-3 space-y-3">
+                        <p class="text-xs text-gray-600">
+                            Les comptes n'ont pas la même devise ({{ fromAccount?.currency?.code }} → {{ toAccount?.currency?.code }}) : indique le taux à appliquer.
+                        </p>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Rate</label>
+                                <input type="text" inputmode="decimal" v-model="transfer.rate" placeholder="ex: 2,35" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border-red-500': transferErrors.rate}">
+                                <span v-if="transferErrors.rate" class="text-danger">{{ transferErrors.rate }}</span>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Sens du taux</label>
+                                <select v-model="transfer.rate_direction" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                                    <option value="multiply">Multiplier (montant × taux)</option>
+                                    <option value="divide">Diviser (montant ÷ taux)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="transferPreview !== null" class="rounded-lg p-3 text-sm" style="background:#eff6ff;">
+                        Le compte destination recevra :
+                        <span class="font-semibold" style="color:#2563eb;">{{ formatMoney(transferPreview) }} {{ toAccount?.currency?.code }}</span>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Performed By</label>
+                        <input type="text" v-model="transfer.performed_by" placeholder="Enter Performed By" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border-red-500': transferErrors.performed_by}">
+                        <span v-if="transferErrors.performed_by" class="text-danger">{{ transferErrors.performed_by }}</span>
+                    </div>
+
+                    <div class="mt-4 flex justify-end gap-2">
+                        <button type="button" class="px-4 py-2 bg-gray-200 rounded" @click="showTransferModal = false">Close</button>
+                        <button disabled v-if="isTransferLoader" class="px-4 py-2 bg-blue-600 text-white rounded">
+                            <div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div>
+                        </button>
+                        <button v-else type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Transférer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        </Teleport>
+
     </main>
 </template>
 <script setup>
@@ -235,6 +322,87 @@
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
+    // ---------- Transfert de compte à compte ----------
+    const emptyTransfer = () => ({
+        from_account_id: '',
+        to_account_id: '',
+        amount: '',
+        rate: '',
+        rate_direction: 'multiply',
+        performed_by: ''
+    })
+    const showTransferModal = ref(false)
+    const isTransferLoader = ref(false)
+    const transfer = ref(emptyTransfer())
+    const transferErrors = ref({})
+
+    // Accepte "2,35" comme "2.35" (les claviers français saisissent une virgule)
+    const toNumber = (value) => parseFloat(String(value ?? '').replace(/\s/g, '').replace(',', '.'))
+    const formatMoney = (value) => Number(value ?? 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+    const fromAccount = computed(() => allAccount.value.find(a => a.id === transfer.value.from_account_id))
+    const toAccount = computed(() => allAccount.value.find(a => a.id === transfer.value.to_account_id))
+    const destinationAccounts = computed(() => allAccount.value.filter(a => a.id !== transfer.value.from_account_id))
+    const needsConversion = computed(() =>
+        !!fromAccount.value && !!toAccount.value && fromAccount.value.currency_id !== toAccount.value.currency_id
+    )
+
+    // Montant que recevra le compte destination (aperçu, le calcul officiel est fait côté serveur)
+    const transferPreview = computed(() => {
+        const amount = toNumber(transfer.value.amount)
+        if (!fromAccount.value || !toAccount.value || !(amount > 0)) return null
+        if (!needsConversion.value) return amount
+        const rate = toNumber(transfer.value.rate)
+        if (!(rate > 0)) return null
+        return transfer.value.rate_direction === 'divide' ? amount / rate : amount * rate
+    })
+
+    // Si l'utilisateur change de compte source et que la destination est identique, on la vide
+    watch(() => transfer.value.from_account_id, (id) => {
+        if (id && transfer.value.to_account_id === id) transfer.value.to_account_id = ''
+    })
+
+    function openTransferModal() {
+        transfer.value = emptyTransfer()
+        transferErrors.value = {}
+        showTransferModal.value = true
+    }
+
+    async function submitTransfer() {
+        const t = transfer.value
+        const errors = {}
+        if (!t.from_account_id) errors.from_account_id = 'Please select the source account'
+        if (!t.to_account_id) errors.to_account_id = 'Please select the destination account'
+        if (!(toNumber(t.amount) > 0)) errors.amount = 'Please enter a valid amount'
+        if (needsConversion.value && !(toNumber(t.rate) > 0)) errors.rate = 'Please enter the rate'
+        if (!t.performed_by) errors.performed_by = 'Please enter performed by'
+        transferErrors.value = errors
+        if (Object.keys(errors).length) return
+
+        isTransferLoader.value = true
+        try {
+            await postData('/transfers', {
+                from_account_id: t.from_account_id,
+                to_account_id: t.to_account_id,
+                amount: toNumber(t.amount),
+                rate: needsConversion.value ? toNumber(t.rate) : null,
+                rate_direction: needsConversion.value ? t.rate_direction : null,
+                performed_by: t.performed_by,
+            })
+            showTransferModal.value = false
+            Swal.fire({ position: 'center', icon: 'success', text: 'Transfer performed', showConfirmButton: false, timer: 1500 })
+            AllMovements()
+            AllAccount() // met à jour les soldes affichés dans la modale
+        } catch (err) {
+            const message = err.response?.data?.message
+                ?? Object.values(err.response?.data?.errors ?? {})[0]?.[0]
+                ?? 'Transfer failed'
+            Swal.fire({ position: 'center', icon: 'error', text: message, showConfirmButton: false, timer: 2500 })
+        } finally {
+            isTransferLoader.value = false
+        }
+    }
+
     const columns = [
         {
             title: `
@@ -269,6 +437,12 @@
             title: 'Type',
             data: 'type',
             render: (data, type, row) => {
+                if (row.transfer_ref) {
+                    const other = escapeHtml(row.counterpart_account?.code ?? '');
+                    return row.type === 'withdraw'
+                        ? `<span class="badge text-white p-1 rounded" style="background:#2563eb;">Transfer out</span><br><small>→ ${other}</small>`
+                        : `<span class="badge text-white p-1 rounded" style="background:#0891b2;">Transfer in</span><br><small>← ${other}</small>`;
+                }
                 if (row.type === 'deposit') {
                     return `<span class="badge bg-success text-white p-1 rounded">Deposit</span>`;
                 } else if (row.type === 'withdraw') {

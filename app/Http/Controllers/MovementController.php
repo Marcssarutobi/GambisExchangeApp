@@ -15,7 +15,7 @@ class MovementController extends Controller
 {
     public function index()
     {
-        $data = Movement::with('account.currency', 'account.client', 'currency')->orderBy('id', 'desc')->get();
+        $data = Movement::with('account.currency', 'account.client', 'counterpartAccount', 'currency')->orderBy('id', 'desc')->get();
         return response()->json([
             'status' => 'success',
             'data' => $data
@@ -281,6 +281,13 @@ class MovementController extends Controller
             $movement = Movement::findOrFail($id);
             $account  = Account::findOrFail($movement->account_id);
 
+            if ($movement->transfer_ref) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Ce mouvement fait partie d\'un transfert entre comptes et ne peut pas être modifié ou supprimé séparément.'
+                ], 403);
+            }
+
             if ($movement->created_at->diffInMinutes(now()) > 30) {
                 return response()->json([
                     'status' => 'error',
@@ -397,6 +404,13 @@ class MovementController extends Controller
         try {
             $movement = Movement::findOrFail($id);
             $account  = Account::findOrFail($movement->account_id);
+
+            if ($movement->transfer_ref) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Ce mouvement fait partie d\'un transfert entre comptes et ne peut pas être modifié ou supprimé séparément.'
+                ], 403);
+            }
 
             if ($movement->created_at->diffInMinutes(now()) > 30) {
                 return response()->json([

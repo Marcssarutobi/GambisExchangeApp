@@ -18,6 +18,8 @@ class Movement extends Model
         'final_amount',
         'currency_id',
         'performed_by',
+        'transfer_ref',
+        'counterpart_account_id',
         'balance_before',
         'balance_after',
     ];
@@ -25,6 +27,12 @@ class Movement extends Model
     public function account()
     {
         return $this->belongsTo(Account::class);
+    }
+
+    // L'autre compte d'un transfert (NULL pour un dépôt/retrait classique)
+    public function counterpartAccount()
+    {
+        return $this->belongsTo(Account::class, 'counterpart_account_id');
     }
 
     public function currency()
