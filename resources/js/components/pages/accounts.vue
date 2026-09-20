@@ -166,7 +166,7 @@
                 </div>
 
                 <!-- Accordéon -->
-                <div class="border border-gray-200 rounded-xl overflow-hidden mb-3" v-for="history in allHistory" :key="history.month">
+                <div class="border border-gray-200 rounded-xl overflow-hidden mb-3" v-for="history in filteredHistory" :key="history.month">
                     <button @click="toggleAccordion(history.month)" class="w-full flex justify-between items-center px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors">
                         <span class="font-medium text-default-800">{{ history.month }}</span>
                         <svg
@@ -235,6 +235,10 @@
                     </div>
                 </div>
 
+                <div v-if="allHistory.length && !filteredHistory.length" class="text-sm text-gray-500 py-4 text-center">
+                    Aucune transaction sur cette période.
+                </div>
+
                 <div class="mt-4 flex justify-end gap-2">
                     <button class="px-4 py-2 bg-gray-200 rounded" @click="historyModal = false">
                         Close
@@ -248,7 +252,7 @@
 </template>
 <script setup>
 
-    import { computed, onMounted, ref } from 'vue';
+    import { computed, onMounted, ref, watch } from 'vue';
     import { useRouter } from 'vue-router';
     import DataTable from '../layout/Datatable.vue';
     import { deleteData, getData, getSingleData, postData, putData } from '../plugins/api';
@@ -264,6 +268,23 @@
     const allClients = ref([]);
     const allCurrency = ref([]);
     const allHistory = ref([]);
+
+    // Filtre de dates en temps réel : on filtre l'historique déjà chargé, sans clic ni rechargement.
+    // La date comparée est celle du serveur (UTC, partie "YYYY-MM-DD" de created_at), la même que
+    // celle utilisée par l'export, pour que le tableau montre exactement ce qui sera exporté.
+    const filteredHistory = computed(() => {
+        const { from, to } = rangeFilter.value;
+        if (!from && !to) return allHistory.value;
+        return allHistory.value
+            .map(group => ({
+                ...group,
+                history: group.history.filter(m => {
+                    const day = String(m.created_at).slice(0, 10);
+                    return (!from || day >= from) && (!to || day <= to);
+                }),
+            }))
+            .filter(group => group.history.length);
+    });
     const data = ref({
         client_id: '',
         currency_id: '',
@@ -278,6 +299,15 @@
     const updateModal = ref(false)
     const historyModal = ref(false)
     const openAccordions = ref({});
+
+    // Quand un filtre est actif, on déplie les mois concernés pour voir directement les résultats
+    watch(() => [rangeFilter.value.from, rangeFilter.value.to], ([from, to]) => {
+        const open = {};
+        if (from || to) {
+            filteredHistory.value.forEach(group => { open[group.month] = true; });
+        }
+        openAccordions.value = open;
+    });
 
     async function AllCustomer() {
         try {
@@ -373,6 +403,8 @@
 
     async function HistoryAccountFunction(accountId) {
         currentAccountId.value = accountId;
+        rangeFilter.value = { from: '', to: '' }; // repart d'un filtre vide pour chaque compte
+        openAccordions.value = {};
         try {
             await getData(`/movements/history/${accountId}`).then(res=>{
                 allHistory.value = res.data.data;

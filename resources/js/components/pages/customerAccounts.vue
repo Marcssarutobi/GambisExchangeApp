@@ -220,9 +220,13 @@ async function fetchClient() {
     }
 }
 
+// Évite qu'une réponse plus lente écrase une plus récente quand on change les dates rapidement
+let historyRequestId = 0;
+
 async function fetchHistory() {
     if (!selectedAccountId.value) return;
 
+    const requestId = ++historyRequestId;
     loadingHistory.value = true;
     try {
         const params = new URLSearchParams();
@@ -232,12 +236,13 @@ async function fetchHistory() {
         const query = params.toString() ? `?${params.toString()}` : '';
         const res = await getData(`/movements/account/${selectedAccountId.value}${query}`);
 
+        if (requestId !== historyRequestId) return; // une requête plus récente est en cours
         movements.value = res.data.data.movements;
         openingBalance.value = res.data.data.opening_balance;
     } catch (error) {
         console.error("Erreur lors du chargement de l'historique :", error);
     } finally {
-        loadingHistory.value = false;
+        if (requestId === historyRequestId) loadingHistory.value = false;
     }
 }
 
@@ -355,6 +360,11 @@ function exportToPDF() {
     const clientName = `${client.value.nom ?? ''}_${client.value.prenom ?? ''}`.trim() || 'client';
     pdfMake.createPdf(docDefinition).download(`Releve_${clientName}_${account.code ?? ''}.pdf`);
 }
+
+// Filtre automatique : le tableau se met à jour dès qu'une date change (plus besoin de cliquer sur « Filtrer »)
+watch(() => [filters.value.from, filters.value.to], () => {
+    fetchHistory();
+});
 
 watch(selectedAccountId, () => {
     filters.value.from = '';
