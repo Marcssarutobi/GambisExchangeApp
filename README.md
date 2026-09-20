@@ -7,6 +7,59 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Gambis Exchange – Mise à jour et synchronisation des données
+
+Procédure à suivre à chaque mise à jour sur le serveur en ligne.
+
+### 1. Sauvegarder la base de données (obligatoire)
+
+```bash
+mysqldump -u UTILISATEUR -p NOM_DE_LA_BASE > sauvegarde_$(date +%F).sql
+```
+
+### 2. Déployer le code
+
+```bash
+git pull
+composer install --no-dev --optimize-autoloader
+npm install && npm run build
+```
+
+### 3. Mettre à jour la base de données
+
+```bash
+php artisan migrate:status          # voir les migrations en attente
+php artisan migrate --pretend       # prévisualiser les requêtes SQL (rien n'est exécuté)
+php artisan migrate --force         # appliquer les migrations
+```
+
+### 4. Synchroniser la caisse générale (une seule fois)
+
+Reconstruit la caisse générale à partir des mouvements et achats/ventes déjà présents en base.
+
+```bash
+php artisan cash-register:backfill
+```
+
+⚠️ À lancer **après** `migrate`, et **une seule fois**, uniquement si la caisse générale est vide
+(jamais utilisée en ligne). Si elle contient déjà des mouvements, la commande demande une
+confirmation : répondre **non** (ne pas utiliser `--force`), sinon les soldes seraient faussés.
+Les transferts de compte à compte sont ignorés (aucun cash ne bouge).
+
+### 5. Vider les caches
+
+```bash
+php artisan optimize:clear
+```
+
+### 6. Vérifier
+
+- Comparer les soldes de la caisse générale avec les valeurs attendues.
+- Faire un petit transfert de compte à compte de test.
+- Contrôler la page d'historique d'un client (`/customer/{id}/accounts/history`).
+
+---
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
