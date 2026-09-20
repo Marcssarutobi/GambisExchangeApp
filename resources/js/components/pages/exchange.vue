@@ -66,44 +66,47 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <div class="">
-                            <label class="block text-sm font-medium text-gray-700">Currency</label>
-                            <select name="currency_id" id="currency_id" v-model="data.currency_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                                <option value="">Select Currency</option>
-                                <option v-for="currency in allCurrency" :key="currency.id" :value="currency.id">{{ currency.name }}</option>
-                            </select>
-                            <span v-if="isEmpty.currency_id" class="text-danger">{{ msgInput.currency_id }}</span>
-                        </div>
-                        <div class="">
-                            <label class="block text-sm font-medium text-gray-700">Rate</label>
-                            <input type="number" min="0"   step="0.01" v-model="data.rate" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                        </div>
-                    </div>
-
                     <div class="">
-                        <label class="block text-sm font-medium text-gray-700">Final Amount</label>
-                        <input  disabled type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.final_amount}" placeholder="Final Amount" v-model="data.final_amount">
-                        <span v-if="isEmpty.final_amount" class="text-danger">{{ msgInput.final_amount }}</span>
+                        <label class="block text-sm font-medium text-gray-700">Currency</label>
+                        <select name="currency_id" id="currency_id" v-model="data.currency_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                            <option value="">Select Currency</option>
+                            <option v-for="currency in allCurrency" :key="currency.id" :value="currency.id">{{ currency.name }}</option>
+                        </select>
+                        <p v-if="selectedAccount" class="text-xs text-gray-500 mt-1">
+                            Devise du compte : <span class="font-semibold">{{ selectedAccount.currency?.code }}</span>
+                        </p>
+                        <span v-if="isEmpty.currency_id" class="text-danger">{{ msgInput.currency_id }}</span>
                     </div>
 
                     <!--
-                        Point 5 : correctif du bug de calcul. Le taux reste saisi manuellement
-                        (il varie), mais l'agent choisit désormais explicitement le sens à
-                        appliquer, au lieu d'une multiplication systématique (bug signalé sur le Naira).
-                        Toujours visible (ne dépend plus d'une détection auto compte/devise, trop
-                        fragile) : ignoré côté serveur si la devise saisie = devise du compte.
+                        Taux, Final Amount et Sens du taux : affichés uniquement si la devise du mouvement
+                        (Currency) est différente de la devise du compte choisi. Sinon il n'y a aucune
+                        conversion : le montant saisi est le montant final.
                     -->
-                    <div class="grid grid-cols-1 gap-4">
-                        <div class="">
-                            <label class="block text-sm font-medium text-gray-700">Sens du taux</label>
-                            <select v-model="data.rate_direction" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                                <option value="multiply">Multiplier (montant × taux)</option>
-                                <option value="divide">Diviser (montant ÷ taux)</option>
-                            </select>
-                            <p class="text-xs text-gray-500 mt-1">Utilisé uniquement si la devise saisie est différente de la devise du compte.</p>
+                    <template v-if="movementNeedsConversion">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div class="">
+                                <label class="block text-sm font-medium text-gray-700">Rate</label>
+                                <input type="number" min="0"   step="0.01" v-model="data.rate" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.rate}">
+                                <span v-if="isEmpty.rate" class="text-danger">{{ msgInput.rate }}</span>
+                            </div>
+                            <div class="">
+                                <label class="block text-sm font-medium text-gray-700">Final Amount</label>
+                                <input  disabled type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.final_amount}" placeholder="Final Amount" v-model="data.final_amount">
+                                <span v-if="isEmpty.final_amount" class="text-danger">{{ msgInput.final_amount }}</span>
+                            </div>
                         </div>
-                    </div>
+
+                        <div class="grid grid-cols-1 gap-4">
+                            <div class="">
+                                <label class="block text-sm font-medium text-gray-700">Sens du taux</label>
+                                <select v-model="data.rate_direction" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                                    <option value="multiply">Multiplier (montant × taux)</option>
+                                    <option value="divide">Diviser (montant ÷ taux)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </template>
 
                     <div class="">
                         <label class="block text-sm font-medium text-gray-700">Performed By</label>
@@ -243,6 +246,13 @@
         currency_id: '',
         performed_by:''
     });
+
+    // Compte choisi dans le formulaire, et conversion nécessaire seulement si la devise du
+    // mouvement (Currency) est différente de la devise du compte.
+    const selectedAccount = computed(() => allAccount.value.find(a => a.id === data.value.account_id))
+    const movementNeedsConversion = computed(() =>
+        !!selectedAccount.value && !!data.value.currency_id && data.value.currency_id !== selectedAccount.value.currency_id
+    )
 
     // Point 2 : bouton Créditer/Débiter d'un compte -> pré-remplissage du formulaire
     // via les query params (account_id, type) au lieu de rechercher le compte dans la liste.
@@ -535,6 +545,9 @@
             isEmpty.value[field] = !data.value[field]
             msgInput.value[field] = `Please enter ${field.replace('_', ' ')}`;
         }
+        // Le taux n'est exigé que s'il est affiché (devise du mouvement ≠ devise du compte)
+        isEmpty.value.rate = movementNeedsConversion.value && !data.value.rate
+        msgInput.value.rate = 'Please enter rate'
         const allEmpty = Object.values(isEmpty.value).every(value => value === false)
         if (allEmpty) {
             isLoader.value = true
@@ -585,12 +598,22 @@
         prefillFromQuery()
     });
 
+    // Quand la conversion n'est plus nécessaire (même devise), on vide le taux pour qu'aucun
+    // ancien taux ne soit envoyé ni enregistré.
+    watch(movementNeedsConversion, (conversion) => {
+        if (!conversion) {
+            data.value.rate = ''
+            data.value.rate_direction = 'multiply'
+            isEmpty.value.rate = false
+        }
+    })
+
     // Point 5 : le calcul respecte désormais le sens choisi par l'agent (multiplier ou diviser),
     // au lieu d'appliquer systématiquement une multiplication.
     watch(
-        [() => data.value.amount, () => data.value.rate, () => data.value.rate_direction],
-        ([amount, rate, direction]) => {
-            if (amount && rate) {
+        [() => data.value.amount, () => data.value.rate, () => data.value.rate_direction, movementNeedsConversion],
+        ([amount, rate, direction, conversion]) => {
+            if (conversion && amount && rate) {
                 const a = parseFloat(amount)
                 const r = parseFloat(rate)
                 data.value.final_amount = direction === 'divide'
