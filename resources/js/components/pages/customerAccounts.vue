@@ -139,6 +139,21 @@
                                 {{ formatAmount(openingBalance) }} {{ accountCurrency }}
                             </td>
                         </tr>
+
+                        <!-- Totaux calculés sur la période affichée : Débit, Crédit et Solde de clôture -->
+                        <tr v-if="movements.length" class="bg-gray-100 font-semibold border-t border-gray-300">
+                            <td class="px-4 py-2" colspan="3">Total de la période</td>
+                            <td class="px-4 py-2 text-right text-red-600">
+                                {{ formatAmount(periodTotals.debit) }} {{ accountCurrency }}
+                            </td>
+                            <td class="px-4 py-2 text-right text-green-600">
+                                {{ formatAmount(periodTotals.credit) }} {{ accountCurrency }}
+                            </td>
+                            <td class="px-4 py-2 text-right"
+                                :class="periodTotals.closing >= 0 ? 'text-blue-600' : 'text-red-600'">
+                                {{ formatAmount(periodTotals.closing) }} {{ accountCurrency }}
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -173,6 +188,23 @@ const openingBalance = ref(0);
 const accountCurrency = computed(() => {
     const account = accounts.value.find(acc => acc.id === selectedAccountId.value);
     return account?.currency?.code ?? '';
+});
+
+// Totaux de la période affichée (recalculés à chaque changement de filtre) :
+//   Débit  = somme des retraits, Crédit = somme des dépôts,
+//   Solde  = solde d'ouverture + crédit - débit (solde de clôture)
+const round2 = (n) => Math.round(n * 100) / 100;
+const periodTotals = computed(() => {
+    let debit = 0;
+    let credit = 0;
+    for (const m of movements.value) {
+        const amount = Number(m.final_amount) || 0;
+        if (m.type === 'withdraw') debit += amount;
+        else if (m.type === 'deposit') credit += amount;
+    }
+    debit = round2(debit);
+    credit = round2(credit);
+    return { debit, credit, closing: round2(Number(openingBalance.value || 0) + credit - debit) };
 });
 
 const loadingAccounts = ref(false);
@@ -317,6 +349,19 @@ function exportToPDF() {
             bold: true,
             alignment: 'right',
             color: openingBalance.value >= 0 ? '#2563eb' : 'red',
+        },
+    ]);
+
+    body.push([
+        { text: 'Total de la période', colSpan: 3, bold: true },
+        {}, {},
+        { text: `${formatAmount(periodTotals.value.debit)} ${accountCurrency.value}`, bold: true, alignment: 'right', color: 'red' },
+        { text: `${formatAmount(periodTotals.value.credit)} ${accountCurrency.value}`, bold: true, alignment: 'right', color: 'green' },
+        {
+            text: `${formatAmount(periodTotals.value.closing)} ${accountCurrency.value}`,
+            bold: true,
+            alignment: 'right',
+            color: periodTotals.value.closing >= 0 ? '#2563eb' : 'red',
         },
     ]);
 

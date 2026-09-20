@@ -190,7 +190,9 @@ class MovementController extends Controller
         }
 
         // Trié du plus récent au plus ancien, comme demandé
-        $movements = $query->orderBy('created_at', 'desc')->get();
+        // (id en second critère : deux mouvements dans la même seconde restent dans le bon ordre,
+        // ce qui garantit que le "plus ancien" ci-dessous est bien le premier de la période)
+        $movements = $query->orderBy('created_at', 'desc')->orderBy('id', 'desc')->get();
 
         // Solde d'ouverture = solde juste avant le mouvement le plus ancien de la période filtrée
         $oldestInRange = $movements->last();
