@@ -52,7 +52,9 @@ class BackfillCashRegister extends Command
         // pour rejouer l'historique dans le bon ordre.
         $events = [];
 
-        foreach (Movement::orderBy('created_at')->get() as $movement) {
+        // Les transferts de compte à compte (transfer_ref renseignée) sont des opérations internes :
+        // aucun cash n'entre ni ne sort, ils ne doivent donc pas être rejoués dans la caisse.
+        foreach (Movement::whereNull('transfer_ref')->orderBy('created_at')->get() as $movement) {
             $events[] = [
                 'date' => $movement->created_at,
                 'id' => $movement->id,
