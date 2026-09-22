@@ -72,7 +72,9 @@ class TransferController extends Controller
                 }
 
                 $fromBefore = (float) $from->balance;
-                if ($fromBefore < $amount) {
+                // Même règle que pour un retrait classique : seul un compte en Dollar (USD)
+                // ne peut pas passer en négatif.
+                if ($from->currency->code === 'USD' && $fromBefore < $amount) {
                     throw new \Exception("Solde insuffisant sur le compte source");
                 }
                 $toBefore = (float) $to->balance;

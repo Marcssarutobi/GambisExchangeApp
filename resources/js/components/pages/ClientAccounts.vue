@@ -44,7 +44,8 @@
                     </span>
                 </div>
 
-                <p class="text-2xl font-bold text-default-900 mb-4">
+                <p class="text-2xl font-bold mb-4"
+                    :class="account.balance < 0 ? 'text-red-600' : 'text-default-900'">
                     {{ Number(account.balance).toLocaleString('fr-FR') }}
                     <span class="text-sm font-medium text-default-500">{{ account.currency?.code }}</span>
                 </p>

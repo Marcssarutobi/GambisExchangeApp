@@ -72,7 +72,9 @@ class MovementController extends Controller
                 if ($request->type === 'deposit') {
                     $account->increment('balance', $finalAmount);
                 } elseif ($request->type === 'withdraw') {
-                    if ($balanceBefore < $finalAmount) {
+                    // Un compte en Dollar (USD) ne peut jamais devenir négatif. Les comptes dans
+                    // les autres devises (Naira, Franc CFA...) peuvent être mis à découvert.
+                    if ($account->currency->code === 'USD' && $balanceBefore < $finalAmount) {
                         throw new \Exception("Solde insuffisant pour ce retrait");
                     }
                     $account->decrement('balance', $finalAmount);
@@ -341,7 +343,7 @@ class MovementController extends Controller
                 // 3️⃣ Vérifier le solde avant application
                 $balanceBefore = $account->balance;
 
-                if ($newType === 'withdraw' && $balanceBefore < $finalAmount) {
+                if ($newType === 'withdraw' && $account->currency->code === 'USD' && $balanceBefore < $finalAmount) {
                     throw new \Exception("Solde insuffisant pour cette modification");
                 }
 
