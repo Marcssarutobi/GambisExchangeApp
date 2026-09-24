@@ -135,7 +135,7 @@
 
         <Teleport to="body">
         <div v-if="historyModal" class="modal-overlay" style="position:fixed; top:0; right:0; bottom:0; left:0; z-index:1000; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; padding:1rem;">
-            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 overflow-y-auto" style="width:100%; max-width:768px; max-height:85vh;">
+            <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 overflow-y-auto" style="width:100%; max-width:1400px; max-height:85vh;">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
                     <h2 class="text-lg font-semibold text-default-900">Historique du compte</h2>
                     <button @click="historyModal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
