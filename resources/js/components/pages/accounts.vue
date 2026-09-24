@@ -181,7 +181,7 @@
                         </svg>
                     </button>
 
-                    <div v-show="openAccordions[history.month]" class="px-4 py-3 border-t border-gray-200 bg-white text-sm text-gray-700">
+                    <div v-if="openAccordions[history.month]" class="px-4 py-3 border-t border-gray-200 bg-white text-sm text-gray-700">
 
                         <div class="flex justify-end mb-3">
                             <button 
@@ -191,46 +191,7 @@
                             </button>
                         </div>
                         
-                        <div class="table-responsive">
-                            <table class="min-w-full border border-gray-200">
-                                <thead class="bg-gray-100">
-                                <tr>
-                                    <th class="px-4 py-2 text-left text-gray-700">Client</th>
-                                    <th class="px-4 py-2 text-left text-gray-700">Description</th>
-                                    <th class="px-4 py-2 text-left text-gray-700">Type</th>
-                                    <th class="px-4 py-2 text-left text-gray-700">Amount</th>
-                                    <th class="px-4 py-2 text-left text-gray-700">Rate</th>
-                                    <th class="px-4 py-2 text-left text-gray-700">Final Amount</th>
-                                    <th class="px-4 py-2 text-left text-gray-700">Balance after</th>
-                                    <th class="px-4 py-2 text-left text-gray-700">Created at</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                    <tr :class="index % 2 === 0 ? 'bg-white' : 'bg-gray-50'" v-for="(data,index) in history.history" :key="index">
-                                        <td class="px-4 py-2">{{ data.account?.client?.nom }} {{ data.account?.client?.prenom }}</td>
-                                        <td class="px-4 py-2">
-                                            <div style="font-weight: bold;">{{ data.performed_by ?? '-' }}</div>
-                                            <div v-if="transferLabel(data)" class="text-xs" style="color:#2563eb;">{{ transferLabel(data) }}</div>
-                                            <div v-if="transferConversion(data, data.account?.currency?.code)" class="text-xs text-gray-500">{{ transferConversion(data, data.account?.currency?.code) }}</div>
-                                        </td>
-                                        <td class="px-4 py-2" style="text-transform: capitalize;">{{ data.type }}</td>
-                                        <td class="px-4 py-2">{{  Number(data.amount).toLocaleString("fr-FR") }} {{ data.currency?.code }}</td>
-                                        <td class="px-4 py-2">{{ rateWithDirection(data) || '-' }}</td>
-                                        <td class="px-4 py-2">
-                                            <span :style="data.final_amount < 0 ? 'color:red; font-weight:bold' : ''">
-                                                {{ Number(data.final_amount).toLocaleString('fr-FR') }} {{ data.account?.currency?.code }}
-                                            </span>
-                                        </td>
-                                        <td class="px-4 py-2">
-                                            <span :style="data.balance_after < 0 ? 'color:red; font-weight:bold' : 'color:#2563eb; font-weight:bold'">
-                                                {{ Number(data.balance_after).toLocaleString('fr-FR') }} {{ data.account?.currency?.code }}
-                                            </span>
-                                        </td>
-                                        <td class="px-4 py-2">{{ formatDate(data.created_at) }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                        <DataTable :data="history.history" :columns="historyColumns" :DeleteAllFunction="() => {}" />
 
                     </div>
                 </div>
@@ -451,6 +412,69 @@
             openAccordions.value[month] = true;
         }
     }
+
+    // Échappe le HTML (les noms de clients sont injectés dans du HTML par DataTable)
+    const escapeHtml = (str) => String(str ?? '')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+    // Colonnes du DataTable de l'historique (une par mois), avec pagination intégrée.
+    const historyColumns = [
+        {
+            title: 'Client',
+            data: null,
+            render: (data, type, row) => escapeHtml(`${row.account?.client?.nom ?? ''} ${row.account?.client?.prenom ?? ''}`.trim()),
+        },
+        {
+            title: 'Description',
+            data: null,
+            render: (data, type, row) => {
+                const label = transferLabel(row);
+                const conversion = transferConversion(row, row.account?.currency?.code);
+                return `<div style="font-weight:bold;">${escapeHtml(row.performed_by ?? '-')}</div>`
+                    + (label ? `<div style="font-size:0.75rem;color:#2563eb;">${escapeHtml(label)}</div>` : '')
+                    + (conversion ? `<div style="font-size:0.75rem;color:#6b7280;">${escapeHtml(conversion)}</div>` : '');
+            },
+        },
+        {
+            title: 'Type',
+            data: 'type',
+            render: (data, type, row) => row.type === 'deposit'
+                ? `<span class="badge bg-success text-white p-1 rounded">Deposit</span>`
+                : `<span class="badge bg-danger text-white p-1 rounded">Withdraw</span>`,
+        },
+        {
+            title: 'Amount',
+            data: null,
+            render: (data, type, row) => `${Number(row.amount).toLocaleString('fr-FR')} ${escapeHtml(row.currency?.code ?? '')}`,
+        },
+        {
+            title: 'Rate',
+            data: null,
+            render: (data, type, row) => escapeHtml(rateWithDirection(row) || '-'),
+        },
+        {
+            title: 'Final Amount',
+            data: null,
+            render: (data, type, row) => {
+                const value = `${Number(row.final_amount).toLocaleString('fr-FR')} ${escapeHtml(row.account?.currency?.code ?? '')}`;
+                return row.final_amount < 0 ? `<span style="color:red;font-weight:bold">${value}</span>` : value;
+            },
+        },
+        {
+            title: 'Balance after',
+            data: null,
+            render: (data, type, row) => {
+                const value = `${Number(row.balance_after).toLocaleString('fr-FR')} ${escapeHtml(row.account?.currency?.code ?? '')}`;
+                return `<span style="color:${row.balance_after < 0 ? 'red' : '#2563eb'};font-weight:bold">${value}</span>`;
+            },
+        },
+        {
+            title: 'Created at',
+            data: null,
+            render: (data, type, row) => formatDate(row.created_at),
+        },
+    ];
 
     function formatDate(dateString) {
         const date = new Date(dateString);
