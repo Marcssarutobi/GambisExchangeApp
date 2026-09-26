@@ -169,8 +169,8 @@ class MovementController extends Controller
 
     /**
      * Historique des mouvements d'un compte, filtrable par période (from/to),
-     * trié du plus récent au plus ancien. Utilisé par la page
-     * /customer/{id}/accounts/history pour l'affichage et l'export PDF.
+     * trié du plus ancien au plus récent (le dernier mouvement s'affiche en bas).
+     * Utilisé par la page /customer/{id}/accounts/history pour l'affichage et l'export PDF.
      */
     public function historyByAccount(Request $request, $accountId)
     {
@@ -194,13 +194,13 @@ class MovementController extends Controller
             $query->whereDate('created_at', '<=', $request->to);
         }
 
-        // Trié du plus récent au plus ancien, comme demandé
-        // (id en second critère : deux mouvements dans la même seconde restent dans le bon ordre,
-        // ce qui garantit que le "plus ancien" ci-dessous est bien le premier de la période)
-        $movements = $query->orderBy('created_at', 'desc')->orderBy('id', 'desc')->get();
+        // Trié du plus ancien au plus récent (id en second critère : deux mouvements dans la
+        // même seconde restent dans le bon ordre).
+        $movements = $query->orderBy('created_at', 'asc')->orderBy('id', 'asc')->get();
 
         // Solde d'ouverture = solde juste avant le mouvement le plus ancien de la période filtrée
-        $oldestInRange = $movements->last();
+        // (maintenant le premier de la liste, puisqu'elle est triée du plus ancien au plus récent)
+        $oldestInRange = $movements->first();
         $openingBalance = $oldestInRange ? $oldestInRange->balance_before : (float) $account->balance;
 
         return response()->json([

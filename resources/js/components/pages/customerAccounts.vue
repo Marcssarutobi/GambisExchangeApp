@@ -74,6 +74,11 @@
                     class="btn bg-green-600 text-white ms-auto disabled:opacity-50">
                     📄 Exporter en PDF
                 </button>
+
+                <button type="button" @click="exportToExcel" :disabled="!movements.length"
+                    class="btn bg-emerald-700 text-white disabled:opacity-50">
+                    📊 Exporter en Excel
+                </button>
             </div>
 
             <div v-if="loadingAccounts" class="text-sm text-gray-500 py-6 text-center">
@@ -219,6 +224,14 @@ function formatAmount(value) {
     return Number(value ?? 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// pdfmake ne sait pas afficher l'espace fine insécable utilisée par toLocaleString('fr-FR') comme
+// séparateur de milliers (elle s'affiche comme un symbole de remplacement, une sorte de croix, à la
+// place de l'espace) : on la remplace par un espace normal, uniquement pour le PDF.
+// L'affichage à l'écran (formatAmount) n'est pas concerné, il s'affiche déjà correctement.
+function formatAmountForPdf(value) {
+    return formatAmount(value).replace(/[\u202F\u00A0]/g, ' ');
+}
+
 function formatDateTime(dateString) {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('fr-FR', {
@@ -321,19 +334,19 @@ function exportToPDF() {
                 ],
             },
             {
-                text: mvt.type === 'withdraw' ? `${formatAmount(mvt.final_amount)} ${accountCurrency.value}` : '',
+                text: mvt.type === 'withdraw' ? `${formatAmountForPdf(mvt.final_amount)} ${accountCurrency.value}` : '',
                 color: 'red',
                 bold: true,
                 alignment: 'right',
             },
             {
-                text: mvt.type === 'deposit' ? `${formatAmount(mvt.final_amount)} ${accountCurrency.value}` : '',
+                text: mvt.type === 'deposit' ? `${formatAmountForPdf(mvt.final_amount)} ${accountCurrency.value}` : '',
                 color: 'green',
                 bold: true,
                 alignment: 'right',
             },
             {
-                text: `${formatAmount(mvt.balance_after)} ${accountCurrency.value}`,
+                text: `${formatAmountForPdf(mvt.balance_after)} ${accountCurrency.value}`,
                 color: mvt.balance_after >= 0 ? '#2563eb' : 'red',
                 bold: true,
                 alignment: 'right',
@@ -345,7 +358,7 @@ function exportToPDF() {
         { text: "Solde d'ouverture de la période", colSpan: 5, bold: true },
         {}, {}, {}, {},
         {
-            text: `${formatAmount(openingBalance.value)} ${accountCurrency.value}`,
+            text: `${formatAmountForPdf(openingBalance.value)} ${accountCurrency.value}`,
             bold: true,
             alignment: 'right',
             color: openingBalance.value >= 0 ? '#2563eb' : 'red',
@@ -355,10 +368,10 @@ function exportToPDF() {
     body.push([
         { text: 'Total de la période', colSpan: 3, bold: true },
         {}, {},
-        { text: `${formatAmount(periodTotals.value.debit)} ${accountCurrency.value}`, bold: true, alignment: 'right', color: 'red' },
-        { text: `${formatAmount(periodTotals.value.credit)} ${accountCurrency.value}`, bold: true, alignment: 'right', color: 'green' },
+        { text: `${formatAmountForPdf(periodTotals.value.debit)} ${accountCurrency.value}`, bold: true, alignment: 'right', color: 'red' },
+        { text: `${formatAmountForPdf(periodTotals.value.credit)} ${accountCurrency.value}`, bold: true, alignment: 'right', color: 'green' },
         {
-            text: `${formatAmount(periodTotals.value.closing)} ${accountCurrency.value}`,
+            text: `${formatAmountForPdf(periodTotals.value.closing)} ${accountCurrency.value}`,
             bold: true,
             alignment: 'right',
             color: periodTotals.value.closing >= 0 ? '#2563eb' : 'red',
@@ -404,6 +417,16 @@ function exportToPDF() {
 
     const clientName = `${client.value.nom ?? ''}_${client.value.prenom ?? ''}`.trim() || 'client';
     pdfMake.createPdf(docDefinition).download(`Releve_${clientName}_${account.code ?? ''}.pdf`);
+}
+
+// Export Excel : réutilise l'endpoint déjà utilisé ailleurs dans l'application (même mise en
+// forme, même tri du plus ancien au plus récent), filtré sur ce compte et la période affichée.
+function exportToExcel() {
+    if (!selectedAccountId.value) return;
+    const params = new URLSearchParams({ account_id: selectedAccountId.value });
+    if (filters.value.from) params.append('from', filters.value.from);
+    if (filters.value.to) params.append('to', filters.value.to);
+    window.open(`/api/export-history?${params.toString()}`, '_blank');
 }
 
 // Filtre automatique : le tableau se met à jour dès qu'une date change (plus besoin de cliquer sur « Filtrer »)
