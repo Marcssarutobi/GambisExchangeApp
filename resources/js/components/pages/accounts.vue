@@ -191,7 +191,10 @@
                             </button>
                         </div>
                         
-                        <DataTable :data="history.history" :columns="historyColumns" :DeleteAllFunction="() => {}" />
+                        <!-- :key force le composant à se reconstruire quand le filtre change, pour que
+                             le tableau (une bibliothèque tierce) affiche bien la nouvelle liste filtrée
+                             au lieu de garder l'ancienne à l'écran. -->
+                        <DataTable :key="`${history.month}-${rangeFilter.from}-${rangeFilter.to}`" :data="history.history" :columns="historyColumns" :DeleteAllFunction="() => {}" />
 
                     </div>
                 </div>
