@@ -57,6 +57,27 @@ class CurrencyPurchasesController extends Controller
             }
         }
 
+        // Une VENTE fait sortir la devise vendue de la caisse (ex : vente de dollars à un client).
+        // Comme pour un retrait client, seule la caisse en Dollar (USD) ne doit jamais devenir
+        // négative : les autres devises peuvent être mises à découvert.
+        if ($validated['type'] === 'vente') {
+            $soldCurrency = Currency::find($validated['currency_id']);
+
+            if ($soldCurrency && $soldCurrency->code === 'USD') {
+                $cashRegister = CashRegister::where('currency_id', $validated['currency_id'])->first();
+                $available = $cashRegister ? (float) $cashRegister->balance : 0;
+
+                if ((float) $validated['amount_purchased'] > $available) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => "Solde de caisse insuffisant en {$soldCurrency->code} pour cette vente. "
+                            . "Disponible : " . number_format($available, 2, ',', ' ') . " {$soldCurrency->code}, "
+                            . "montant demandé : " . number_format((float) $validated['amount_purchased'], 2, ',', ' ') . " {$soldCurrency->code}.",
+                    ], 422);
+                }
+            }
+        }
+
         $purchase = DB::transaction(function () use ($validated) {
             $purchase = CurrencyPurchases::create($validated);
 

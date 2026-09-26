@@ -77,6 +77,9 @@ class MovementController extends Controller
                     if ($account->currency->code === 'USD' && $balanceBefore < $finalAmount) {
                         throw new \Exception("Solde insuffisant pour ce retrait");
                     }
+                    // Caisse générale : même si le compte est dans une autre devise (ex : compte en
+                    // FCFA, retrait en dollars), il faut physiquement assez de dollars en caisse.
+                    CashRegisterService::assertSufficientForWithdrawal($request->currency_id, $amount);
                     $account->decrement('balance', $finalAmount);
                 }
 
@@ -379,6 +382,13 @@ class MovementController extends Controller
                     $movement,
                     'Annulation avant modification du mouvement #' . $movement->id
                 );
+
+                // La caisse est vérifiée APRÈS l'annulation ci-dessus, pour tenir compte du cash déjà
+                // rendu si le mouvement d'origine était un retrait.
+                if ($newType === 'withdraw') {
+                    CashRegisterService::assertSufficientForWithdrawal($newCurrencyId, $newAmount);
+                }
+
                 CashRegisterService::record(
                     $newCurrencyId,
                     $newType === 'deposit' ? 'client_deposit' : 'client_withdraw',
