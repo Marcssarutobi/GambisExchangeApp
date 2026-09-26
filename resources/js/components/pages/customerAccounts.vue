@@ -71,13 +71,13 @@
                 </button>
 
                 <button type="button" @click="exportToPDF" :disabled="!movements.length"
-                    class="btn bg-green-600 text-white ms-auto disabled:opacity-50">
-                    📄 Exporter en PDF
+                    class="btn bg-red-600 text-white ms-auto disabled:opacity-50">
+                    <i class="material-symbols-rounded align-middle">picture_as_pdf</i> Exporter en PDF
                 </button>
 
                 <button type="button" @click="exportToExcel" :disabled="!movements.length"
-                    class="btn bg-emerald-700 text-white disabled:opacity-50">
-                    📊 Exporter en Excel
+                    class="btn bg-green-600 text-white disabled:opacity-50">
+                    <i class="material-symbols-rounded align-middle">table_view</i> Exporter en Excel
                 </button>
             </div>
 
