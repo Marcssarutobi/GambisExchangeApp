@@ -198,17 +198,24 @@ class MovementController extends Controller
         // même seconde restent dans le bon ordre).
         $movements = $query->orderBy('created_at', 'asc')->orderBy('id', 'asc')->get();
 
-        // Solde d'ouverture = solde juste avant le mouvement le plus ancien de la période filtrée
-        // (maintenant le premier de la liste, puisqu'elle est triée du plus ancien au plus récent)
+        // Solde d'ouverture de la PÉRIODE filtrée = solde juste avant le mouvement le plus ancien
+        // de cette période (utilisé pour calculer le "Total de la période" ci-dessous).
         $oldestInRange = $movements->first();
-        $openingBalance = $oldestInRange ? $oldestInRange->balance_before : (float) $account->balance;
+        $periodOpeningBalance = $oldestInRange ? $oldestInRange->balance_before : (float) $account->balance;
+
+        // Solde à l'OUVERTURE DU COMPTE = solde juste avant le tout premier mouvement du compte,
+        // qu'il soit ou non dans la période filtrée. Ne change jamais selon les dates choisies.
+        $firstMovementEver = Movement::where('account_id', $accountId)
+            ->orderBy('created_at', 'asc')->orderBy('id', 'asc')->first();
+        $accountOpeningBalance = $firstMovementEver ? (float) $firstMovementEver->balance_before : (float) $account->balance;
 
         return response()->json([
             'status' => 'success',
             'data' => [
-                'account'         => $account,
-                'opening_balance' => $openingBalance,
-                'movements'       => $movements,
+                'account'                 => $account,
+                'opening_balance'         => $periodOpeningBalance,
+                'account_opening_balance' => $accountOpeningBalance,
+                'movements'               => $movements,
             ],
         ]);
     }
@@ -270,8 +277,27 @@ class MovementController extends Controller
         $accountName = trim(($firstMovement->account->client->nom ?? '') . ' ' . ($firstMovement->account->client->prenom ?? '')) ?: 'Inconnu';
         $fileName = "Historique_{$fileLabel}_{$accountName}.xlsx";
 
+        // Solde à l'ouverture du compte (fixe, indépendant de la période filtrée) : seulement
+        // disponible quand l'export porte sur un seul compte précis (sinon les mouvements peuvent
+        // appartenir à plusieurs comptes différents, et ce solde n'aurait pas de sens).
+        $account = null;
+        $accountOpeningBalance = null;
+        if ($request->filled('account_id')) {
+            $account = Account::with('currency')->find($request->account_id);
+            if ($account) {
+                $firstMovementEver = Movement::where('account_id', $account->id)
+                    ->orderBy('created_at', 'asc')->orderBy('id', 'asc')->first();
+                $accountOpeningBalance = $firstMovementEver
+                    ? (float) $firstMovementEver->balance_before
+                    : (float) $account->balance;
+            }
+        }
+
         // Export
-        return Excel::download(new HistoryExport($query, $periodLabel, $accountName), $fileName);
+        return Excel::download(
+            new HistoryExport($query, $periodLabel, $accountName, $account, $accountOpeningBalance),
+            $fileName
+        );
     }
 
     public function update(Request $request, $id)

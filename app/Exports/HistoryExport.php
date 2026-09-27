@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Models\Account;
 use App\Models\Movement;
 use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -13,25 +14,35 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
 /**
- * Mêmes colonnes que le relevé PDF (Date, Réf., Description, Débit, Crédit, Solde), pour que les
- * deux exports se ressemblent.
+ * Mêmes colonnes que le relevé PDF (Date, Réf., Description, Débit, Crédit, Solde). Quand l'export
+ * porte sur un seul compte ($account fourni), une ligne "Solde à l'ouverture du compte" est ajoutée
+ * en haut et une ligne "Total de la période" en bas, comme sur le PDF.
  */
 class HistoryExport implements FromCollection, WithHeadings, WithStyles, ShouldAutoSize, WithTitle, WithCustomStartCell
 {
+    // Cellule vide "professionnelle" : un tiret plutôt qu'une case vide, comme sur un relevé bancaire.
+    protected const EMPTY = '–';
+
     protected $query;
     protected $periodLabel;
     protected $accountName;
+    protected ?Account $account;
+    protected ?float $accountOpeningBalance;
 
     /**
      * @param \Illuminate\Database\Eloquent\Builder $query Requête déjà filtrée (mois, ou plage de dates + compte)
      * @param string $periodLabel Libellé de la période affiché dans le titre du fichier
      * @param string $accountName
+     * @param Account|null $account Compte concerné, uniquement si l'export porte sur un seul compte
+     * @param float|null $accountOpeningBalance Solde du compte à sa création (indépendant de la période)
      */
-    public function __construct($query, $periodLabel, $accountName)
+    public function __construct($query, $periodLabel, $accountName, ?Account $account = null, ?float $accountOpeningBalance = null)
     {
         $this->query = $query;
         $this->periodLabel = $periodLabel;
         $this->accountName = $accountName;
+        $this->account = $account;
+        $this->accountOpeningBalance = $accountOpeningBalance;
     }
 
     protected function movements()
@@ -43,24 +54,70 @@ class HistoryExport implements FromCollection, WithHeadings, WithStyles, ShouldA
             ->get();
     }
 
+    /** Le compte est-il connu ? Si oui, on peut afficher le solde d'ouverture et les totaux. */
+    protected function hasAccountContext(): bool
+    {
+        return $this->account !== null && $this->accountOpeningBalance !== null;
+    }
+
     public function collection()
     {
-        return $this->movements()->map(function (Movement $data) {
-            $accountCurrency = $data->account->currency->code ?? '';
+        $rows = collect();
 
-            return [
+        if ($this->hasAccountContext()) {
+            $currency = $this->account->currency->code ?? '';
+            $rows->push([
+                'Date'        => '',
+                'Réf.'        => '',
+                'Description' => "Solde à l'ouverture du compte",
+                'Débit'       => self::EMPTY,
+                'Crédit'      => self::EMPTY,
+                'Solde'       => number_format($this->accountOpeningBalance, 0, ',', ' ') . ' ' . $currency,
+            ]);
+        }
+
+        $movements = $this->movements();
+
+        $debitTotal = 0;
+        $creditTotal = 0;
+
+        foreach ($movements as $data) {
+            $accountCurrency = $data->account->currency->code ?? '';
+            $isDebit = $data->type === 'withdraw';
+            $isCredit = $data->type === 'deposit';
+
+            if ($isDebit) $debitTotal += (float) $data->final_amount;
+            if ($isCredit) $creditTotal += (float) $data->final_amount;
+
+            $rows->push([
                 'Date'        => Carbon::parse($data->created_at)->format('d/m/Y H:i'),
                 'Réf.'        => 'MVT-' . $data->id,
                 'Description' => $this->description($data),
-                'Débit'       => $data->type === 'withdraw'
+                'Débit'       => $isDebit
                     ? number_format($data->final_amount, 0, ',', ' ') . ' ' . $accountCurrency
-                    : '',
-                'Crédit'      => $data->type === 'deposit'
+                    : self::EMPTY,
+                'Crédit'      => $isCredit
                     ? number_format($data->final_amount, 0, ',', ' ') . ' ' . $accountCurrency
-                    : '',
+                    : self::EMPTY,
                 'Solde'       => number_format($data->balance_after, 0, ',', ' ') . ' ' . $accountCurrency,
-            ];
-        });
+            ]);
+        }
+
+        if ($this->hasAccountContext()) {
+            $currency = $this->account->currency->code ?? '';
+            $closing = $this->accountOpeningBalance + $creditTotal - $debitTotal;
+
+            $rows->push([
+                'Date'        => '',
+                'Réf.'        => '',
+                'Description' => 'Total de la période',
+                'Débit'       => number_format($debitTotal, 0, ',', ' ') . ' ' . $currency,
+                'Crédit'      => number_format($creditTotal, 0, ',', ' ') . ' ' . $currency,
+                'Solde'       => number_format($closing, 0, ',', ' ') . ' ' . $currency,
+            ]);
+        }
+
+        return $rows;
     }
 
     /**
@@ -136,7 +193,7 @@ class HistoryExport implements FromCollection, WithHeadings, WithStyles, ShouldA
         ]);
         $sheet->getRowDimension(3)->setRowHeight(25);
 
-        // 🔹 Bordures et lignes du tableau
+        // 🔹 Bordures de tout le tableau
         $highestRow = $sheet->getHighestRow();
         $sheet->getStyle('A3:F' . $highestRow)->applyFromArray([
             'borders' => ['allBorders' => ['borderStyle' => 'thin', 'color' => ['rgb' => 'AAAAAA']]],
@@ -146,12 +203,48 @@ class HistoryExport implements FromCollection, WithHeadings, WithStyles, ShouldA
         // 🔹 Colonne Description : retour à la ligne (transfert + conversion sur plusieurs lignes)
         $sheet->getStyle('C4:C' . $highestRow)->getAlignment()->setWrapText(true);
 
-        // 🔹 Lignes et solde négatif en rouge + gras (colonne F), en se basant sur les vraies
-        // valeurs des mouvements plutôt que sur le texte déjà formaté de la cellule.
-        $movements = $this->movements();
-        foreach ($movements as $index => $data) {
-            $row = 4 + $index;
+        // 🔹 Colonnes de montants alignées à droite (comme sur un relevé), tableau plus lisible
+        $sheet->getStyle('D4:F' . $highestRow)->getAlignment()->setHorizontal('right');
+
+        $hasContext = $this->hasAccountContext();
+        $movementsCollection = $this->movements();
+        $firstMovementRow = 4 + ($hasContext ? 1 : 0);
+
+        // 🔹 Ligne "Solde à l'ouverture du compte" (première ligne de données, si connue)
+        if ($hasContext) {
+            $sheet->mergeCells('A4:E4');
+            $sheet->getStyle('A4:F4')->applyFromArray([
+                'font' => ['bold' => true, 'italic' => true],
+                'fill' => ['fillType' => 'solid', 'color' => ['rgb' => 'EEF2F7']],
+            ]);
+            // Débit/Crédit non applicables sur cette ligne : le tiret est recentré
+            $sheet->getStyle('D4:E4')->getAlignment()->setHorizontal('center');
+        }
+
+        // 🔹 Ligne "Total de la période" (dernière ligne de données, si connue)
+        if ($hasContext) {
+            $totalRow = $highestRow;
+            $sheet->mergeCells("A{$totalRow}:C{$totalRow}");
+            $sheet->getStyle("A{$totalRow}:F{$totalRow}")->applyFromArray([
+                'font' => ['bold' => true],
+                'fill' => ['fillType' => 'solid', 'color' => ['rgb' => 'EEF2F7']],
+                'borders' => ['top' => ['borderStyle' => 'medium']],
+            ]);
+        }
+
+        // 🔹 Solde négatif en rouge + gras (colonne F), en se basant sur les vraies valeurs des
+        // mouvements plutôt que sur le texte déjà formaté de la cellule. Le tiret des colonnes
+        // Débit/Crédit non applicables est recentré (au lieu de rester "collé" à droite).
+        foreach ($movementsCollection as $index => $data) {
+            $row = $firstMovementRow + $index;
             $sheet->getRowDimension($row)->setRowHeight(20);
+
+            if ($data->type !== 'withdraw') {
+                $sheet->getStyle('D' . $row)->getAlignment()->setHorizontal('center');
+            }
+            if ($data->type !== 'deposit') {
+                $sheet->getStyle('E' . $row)->getAlignment()->setHorizontal('center');
+            }
 
             if ((float) $data->balance_after < 0) {
                 $sheet->getStyle('F' . $row)->getFont()->getColor()->setRGB('FF0000');

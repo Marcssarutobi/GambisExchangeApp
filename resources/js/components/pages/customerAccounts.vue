@@ -106,6 +106,14 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <tr class="bg-gray-100 font-semibold italic">
+                            <td class="px-4 py-2" colspan="5">Solde à l'ouverture du compte</td>
+                            <td class="px-4 py-2 text-right"
+                                :class="accountOpeningBalance >= 0 ? 'text-blue-600' : 'text-red-600'">
+                                {{ formatAmount(accountOpeningBalance) }} {{ accountCurrency }}
+                            </td>
+                        </tr>
+
                         <tr v-if="!movements.length">
                             <td colspan="6" class="px-4 py-6 text-center text-gray-500">
                                 Aucune transaction sur cette période.
@@ -134,14 +142,6 @@
                             <td class="px-4 py-2 text-right font-semibold"
                                 :class="mvt.balance_after >= 0 ? 'text-blue-600' : 'text-red-600'">
                                 {{ formatAmount(mvt.balance_after) }} {{ accountCurrency }}
-                            </td>
-                        </tr>
-
-                        <tr v-if="movements.length" class="bg-gray-100 font-semibold">
-                            <td class="px-4 py-2" colspan="5">Solde d'ouverture de la période</td>
-                            <td class="px-4 py-2 text-right"
-                                :class="openingBalance >= 0 ? 'text-blue-600' : 'text-red-600'">
-                                {{ formatAmount(openingBalance) }} {{ accountCurrency }}
                             </td>
                         </tr>
 
@@ -187,7 +187,8 @@ const client = ref({});
 const accounts = ref([]);
 const selectedAccountId = ref(null);
 const movements = ref([]);
-const openingBalance = ref(0);
+const openingBalance = ref(0); // solde de DÉBUT DE PÉRIODE (interne, sert au calcul du "Total de la période")
+const accountOpeningBalance = ref(0); // solde à l'ouverture du COMPTE (fixe, affiché en haut et exporté)
 
 // Devise du compte sélectionné (ex: XOF, NRN)
 const accountCurrency = computed(() => {
@@ -284,6 +285,7 @@ async function fetchHistory() {
         if (requestId !== historyRequestId) return; // une requête plus récente est en cours
         movements.value = res.data.data.movements;
         openingBalance.value = res.data.data.opening_balance;
+        accountOpeningBalance.value = res.data.data.account_opening_balance;
     } catch (error) {
         console.error("Erreur lors du chargement de l'historique :", error);
     } finally {
@@ -322,6 +324,17 @@ function exportToPDF() {
         ],
     ];
 
+    body.push([
+        { text: "Solde à l'ouverture du compte", colSpan: 5, bold: true, italics: true },
+        {}, {}, {}, {},
+        {
+            text: `${formatAmountForPdf(accountOpeningBalance.value)} ${accountCurrency.value}`,
+            bold: true,
+            alignment: 'right',
+            color: accountOpeningBalance.value >= 0 ? '#2563eb' : 'red',
+        },
+    ]);
+
     movements.value.forEach((mvt) => {
         body.push([
             formatDateTime(mvt.created_at),
@@ -353,17 +366,6 @@ function exportToPDF() {
             },
         ]);
     });
-
-    body.push([
-        { text: "Solde d'ouverture de la période", colSpan: 5, bold: true },
-        {}, {}, {}, {},
-        {
-            text: `${formatAmountForPdf(openingBalance.value)} ${accountCurrency.value}`,
-            bold: true,
-            alignment: 'right',
-            color: openingBalance.value >= 0 ? '#2563eb' : 'red',
-        },
-    ]);
 
     body.push([
         { text: 'Total de la période', colSpan: 3, bold: true },
