@@ -87,7 +87,7 @@
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             <div class="">
                                 <label class="block text-sm font-medium text-gray-700">Rate</label>
-                                <input type="number" min="0"   step="0.01" v-model="data.rate" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.rate}">
+                                <input type="text" inputmode="decimal" placeholder="ex: 2,35" v-model="data.rate" class="mt-1 block w-full border border-gray-300 rounded-md p-2" :class="{'border border-red-500':isEmpty.rate}">
                                 <span v-if="isEmpty.rate" class="text-danger">{{ msgInput.rate }}</span>
                             </div>
                             <div class="">
@@ -613,9 +613,15 @@
     watch(
         [() => data.value.amount, () => data.value.rate, () => data.value.rate_direction, movementNeedsConversion],
         ([amount, rate, direction, conversion]) => {
+            // Accepte "2,323" comme "2.323" (clavier français) : on normalise tout de suite le
+            // champ affiché, pour que la valeur envoyée au serveur soit toujours avec un point.
+            if (typeof rate === 'string' && rate.includes(',')) {
+                rate = rate.replace(',', '.')
+                data.value.rate = rate
+            }
             if (conversion && amount && rate) {
-                const a = parseFloat(amount)
-                const r = parseFloat(rate)
+                const a = toNumber(amount)
+                const r = toNumber(rate)
                 data.value.final_amount = direction === 'divide'
                     ? (a / r).toFixed(2)
                     : (a * r).toFixed(2)
