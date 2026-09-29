@@ -41,23 +41,25 @@ class DashboardController extends Controller
 
 
     /**
-     * Bug corrigé : additionnait tous les comptes quelle que soit leur devise
-     * (ex: 500 USD + 150 000 XOF affiché comme "150 500 XOF"). Renvoie désormais
-     * un solde par devise, comme pour la caisse générale.
+     * Carte "Total Balance" du tableau de bord : le total affiché correspond désormais
+     * au solde de la caisse générale (table cash_registers), une ligne par devise.
+     * Auparavant, la carte additionnait les soldes des comptes clients.
      */
     public function totalBalance()
     {
-        // Solde total par devise
-        $balancesByCurrency = Account::join('currencies', 'accounts.currency_id', '=', 'currencies.id')
-            ->select('currencies.code as currency', DB::raw('SUM(accounts.balance) as total'))
+        // Solde actuel de la caisse générale, par devise
+        $balancesByCurrency = CashRegister::join('currencies', 'cash_registers.currency_id', '=', 'currencies.id')
+            ->select('currencies.code as currency', DB::raw('SUM(cash_registers.balance) as total'))
             ->groupBy('currencies.code')
             ->get();
 
-        // Total reçu par jour (toutes devises confondues, à titre indicatif uniquement)
-        $dailyDeposits = Account::select(
-            DB::raw('DATE(created_at) as date'),
-            DB::raw('SUM(balance) as total')
-        )
+        // Courbe de la carte : variation nette de la caisse par jour (balance_after - balance_before, ajustements manuels inclus),
+        // toutes devises confondues, à titre indicatif uniquement.
+        $dailyDeposits = DB::table('cash_movements')
+            ->select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('SUM(balance_after - balance_before) as total')
+            )
             ->groupBy('date')
             ->orderBy('date', 'asc')
             ->get();
